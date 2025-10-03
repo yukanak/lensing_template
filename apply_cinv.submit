@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH --job-name=cinv
+#SBATCH --time=1:00:00
+#SBATCH --partition=kipac
+#SBATCH --array=0
+#SBATCH -N 1
+#SBATCH --cpus-per-task=12
+#SBATCH --mem=256G
+#SBATCH --constraint=CLASS:SH4_CSCALE
+
+~/lensing_template/cinv_lowell_map.py $SLURM_ARRAY_TASK_ID
+

@@ -1,0 +1,60 @@
+# same as lowell_v3mocks_musebeam.yaml
+# but with TT/TE/EE best-fit polarization beam
+# to be applied to the signal mocks (with sim beam deconvolved)
+# Also, noise is updated with Pcal derived with the TT/TE/EE best-fit polarization beam
+# (Pcal difference with muse beam vs T beam is negligible so stick with T-beam-derived Pcal for now)
+# (i.e. input maps are identical; only changing beam model in inv-nvar weights)
+#
+# this yaml is for noise maps correlated between the low-ell map set and mid-ell map set
+#
+
+mask_fname: /oak/stanford/orgs/kipac/users/yukanaka/lensing_template/mask/ApodMaskPS2048.fits
+#same as /lcrc/project/SPT3G/users/rgualtie/ApodMaskPS2048.fits 
+
+outdir: /oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cinv_lowellmap_19-20/v3mocks_musebeamv41_corr/
+
+lmax: 4096
+
+maps:
+  indir: /oak/stanford/orgs/kipac/users/yukanaka/lensing_template/sims_lowell/2.n.n.3.0/inputs/
+  infname: mockobsinput_tqu1_agora0.7_datamatched_mcmccal_0707231033_%ighz_seed%i.fits
+  mockdir: /oak/stanford/orgs/kipac/users/yukanaka/lensing_template/sims_lowell/2.n.n.3.1/outputs/healpix/seed%i/   #beamed, binary-masked map
+  mockfname: Coadd_allfields_%03dghz.fits
+  invnvar_map_fname: inv_nvar_maps/invnvar_sig_noi_{seed}.alm
+
+data:
+  fname: #not made yet
+
+beam:
+  polarized: True
+  sim : /home/users/yukanaka/spt3g_software/scratch/yomori/midell/beams/spt3g/saturn.txt
+  data: /oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/beam/beam_musev4normedafter_v41.npz
+
+tf:
+  tf2d_fname: tf2d_%s.pkl  #use one from lowell_v3mocks_musebeam.yaml (symlink, from v3mocks)
+  tf1d_fname: tf1d_%s.npy  #use one from lowell_v3mocks_musebeam.yaml (symlink, from v3mocks)
+  tf2d_avg  : etf2d_500sims_nobeam_90150avg.npy #use one from lowell_v3mocks_musebeam.yaml (symlink, from v3mocks)
+  tf2d_smoothed: etf2d_500sims_nobeam_smoothed.npy #use one from lowell_v3mocks_musebeam.yaml (symlink, from v3mocks)
+  invnvar_tf2d_beam: etf2d_500sims_beam_invnvar_smoothed.npy #regenerate
+  invnvar_tf1d_beam: etf1d_500sims_beam_invnvar_smoothed.npy #regenerate
+
+noise:
+  fname: /oak/stanford/orgs/kipac/users/yukanaka/lensing_template/nulls_corrWmell/1500d/signflip_%03d_bundles_000_to_023_pcal_depro_qurot_%03dghz.fits
+  nl2d_fname: nl2d_%i.pkl  #regen
+  nl1d_fname: nl1d_%i.pkl  #regen
+  nl2d_invnvar_fname: nl2d_%s_invnvar.npy #regen
+  nl2d_smooth: #not input to cinv; for cinv output comparison
+    mmin:     20
+    slope:    0.77
+    gausssig: 20
+    fname:    nl2d_%s_smoothed_invnvar.npy
+
+
+
+
+
+
+
+
+
+
