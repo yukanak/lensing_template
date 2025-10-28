@@ -149,5 +149,3 @@ plt.tight_layout()
 plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_map.png", dpi=300, bbox_inches='tight')  # Save high-res
 #plt.savefig("/home/users/yukanaka/lensing_template/figs/input_b_map.png", dpi=300, bbox_inches='tight')  # Save high-res
 
-
-

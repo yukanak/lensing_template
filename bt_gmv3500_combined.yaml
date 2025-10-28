@@ -3,23 +3,26 @@
 # I know the yaml is titled "mh" but the rectype here is actually set to gmvjtp_sep
 phi_yaml: "/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_mh.yaml"
 
-e_yaml: "/home/users/yukanaka/lensing_template/corr_vs_uncorr_noise_in_elm/lowell_v3mocks_musebeamv41_corr.yaml"
+e_yaml: "/home/users/yukanaka/lensing_template/lowell_v3mocks_musebeamv41.yaml"
 
 phi:
   dir_phi: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/%s/"
-  dir_resp: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/%s/" #GMV/"
+  dir_resp: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/%s/" #GMV/" 
   #dir_phi: "/lcrc/project/SPT3G/users/ac.yomori/projects/spt3g_lensing_20192020/lensrec/081024/gmvjtp/autotf_v2_lmint350_lminp350_lmaxt3500_lmaxp3500_mmin100_aggcinv/%s/" #GMV/"
-  #dir_resp: "/lcrc/project/SPT3G/users/ac.yomori/projects/spt3g_lensing_20192020/lensrec/081024/gmvjtp/autotf_v2_lmint350_lminp350_lmaxt3500_lmaxp3500_mmin100_aggcinv_noinpaint/%s/" #GMV/"
-  qe: "GMV"   #'GMVbhTTprf'
-  san0fname: "SAN0_array_%s_spice.npy"
+  #dir_resp: "/lcrc/project/SPT3G/users/ac.yomori/projects/spt3g_lensing_20192020/lensrec/081024/gmvjtp/autotf_v2_lmint350_lminp350_lmaxt3500_lmaxp3500_mmin100_aggcinv_noinpaint/%s/" #GMV/" 
+  qe: "GMV"   #'GMVbhTTprf' 
+  san0fname: "SAN0_array_%s_spice_nrm.npy"
   rdn0fname: "RDN0_%s.npy"
+  dir_combined_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_qe_cib_phi_tracer/" 
 
 cinve:
-  dir_cinve: "cinv_output_test_corr/"
+  dir_cinve: "cinv_output_test_uncorr/"
 
-ep_ells:
-  lmax_b: 2000
-  lmax_p: 2000
+ep_ells: 
+  #lmax_b: 2000
+  #lmax_p: 2000
+  lmax_b: 1500
+  lmax_p: 1500
   lmax_e: 1500
   lmin_e: 40
   lmin_p: 24
@@ -31,10 +34,10 @@ ep_ells:
 
 #input_maps:
 #  bmap_in_fname:
-#  tebinfanem:
+#  tebinfanem: 
 
 outputs:
-  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_corr/'
+  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_cib_qe_standard/' 
   btpl_fname: 'btmpl_alm_%04d.fits'
   btpl_spec_fname: 'btmpl_specs_%04d.npz'
   btpl_pure_spec_fname: 'btmpl_pure_specs_%04d.npz'

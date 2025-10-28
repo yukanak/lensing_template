@@ -2,12 +2,14 @@
 #SBATCH --job-name=btemp
 #SBATCH --time=1:00:00
 #SBATCH --partition=kipac
-#SBATCH --array=0-500
+#SBATCH --array=1-500
 #SBATCH -N 1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=256G
 
 #~/lensing_template/gen_btemplate.py bt_gmv3500.yaml $SLURM_ARRAY_TASK_ID
 #~/lensing_template/gen_btemplate.py bt_gmv3500_prfhrd.yaml $SLURM_ARRAY_TASK_ID
-~/lensing_template/gen_btemplate.py bt_gmv3500_pp.yaml $SLURM_ARRAY_TASK_ID
+#~/lensing_template/gen_btemplate.py bt_gmv3500_pp.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
+python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_pp.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
 

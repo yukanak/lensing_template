@@ -2,7 +2,7 @@
 #SBATCH --job-name=cinv
 #SBATCH --time=1:00:00
 #SBATCH --partition=kipac
-#SBATCH --array=0
+#SBATCH --array=5001-5010
 #SBATCH -N 1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=256G

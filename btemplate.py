@@ -131,8 +131,9 @@ def load_compsep_beam(lmax=1788):
 
 class btemplate():
 
-    def __init__(self, yaml_file, bk_yaml=None):
+    def __init__(self, yaml_file, bk_yaml=None, combined_tracer=False):
 
+        self.combined_tracer = combined_tracer
         #load btmpl yaml
         bconfig     = yaml.safe_load(open(yaml_file, "rb"))
         self.lmax_e = bconfig['ep_ells']['lmax_e']
@@ -153,6 +154,8 @@ class btemplate():
         self.san0fname  = bconfig['phi']['san0fname']
         self.rdn0fname  = bconfig['phi']['rdn0fname']
 
+        if self.combined_tracer:
+            self.dir_combined_tracer = bconfig['phi']['dir_combined_tracer']
 
         #load phi yaml
         pconfig     = yaml.safe_load(open(bconfig['phi_yaml'], "rb"))
@@ -281,13 +284,17 @@ class btemplate():
     def get_btpl_alm(self,idx):
         fname = self.outdir+self.btpl_fname%idx
         if not os.path.isfile(fname):
-            klm      = self.get_debiased_klm(idx)
+            if self.combined_tracer:
+                klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_pp_seed%d.alm"%idx,hdu=1)
+                # Already WF at the combination step so no need for kfilt
+                pwf = hp.almxfl(klm, safe_inv(self.phi2kap(self.ls)))
+            else:
+                klm      = self.get_debiased_klm(idx)
+                kfilt   = self.get_kap_filt(idx)
+                pwf  = hp.almxfl(klm, kfilt * safe_inv(self.phi2kap(self.ls)))
+
             cinv_elm = self.get_cinv_elm(idx)
-
-            kfilt   = self.get_kap_filt(idx)
             elmmask = self.get_e_lmmask()
-
-            pwf  = hp.almxfl(klm, kfilt * safe_inv(self.phi2kap(self.ls)))
             ewf  = hp.almxfl(cinv_elm, self.clee) * elmmask
 
             qe      = qest.qest(self.qeconfig, self.qecls)
