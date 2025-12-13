@@ -1,10 +1,12 @@
-import subprocess, os
+import subprocess, os, sys
 import numpy as np
 import healpy as hp
 from astropy.io import fits
 from scipy.ndimage import gaussian_filter1d
 import matplotlib.pyplot as plt
 from astropy import constants as const
+sys.path.append('/home/users/yukanaka/healqest/healqest/src/')
+import healqest_utils as utils
 
 nside = 2048
 os.environ["HEALPIX"] = "/home/users/yukanaka/miniconda3/envs/tora_py3/Healpix_3.83/"
@@ -49,7 +51,8 @@ subprocess.call(
     [
         spice,
         "-mapfile",
-        "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH1.fits",
+        "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_full.fits",
+        #"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH1.fits",
         #"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_CIB-GNILC-F545_2048_R2.00.fits", # PR3
         "-maskfile",
         "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/545mask.fits",
@@ -59,7 +62,8 @@ subprocess.call(
         "-pixelfile",
         "YES",
         "-mapfile2",
-        "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH2.fits",
+        "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_full.fits",
+        #"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH2.fits",
         #"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_CIB-GNILC-F545_2048_R2.00.fits", # PR3
         "-maskfile2",
         "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/545mask.fits",
@@ -70,7 +74,8 @@ subprocess.call(
         "YES",
         "-clfile",
         #"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clii_545ghz_fionamask.dat", # PR3
-        "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clii_545ghz.dat",
+        #"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clii_545ghz.dat",
+        "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clii_545ghz_fullmission.dat",
         "-nlmax",
         "2048",
         "-apodizesigma",
@@ -180,44 +185,45 @@ subprocess.call(
 
 # check
 ell = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clii_545ghz.dat")[:1501,0]
-clii = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clii_545ghz.dat")[:1501,1]
+#clii = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clii_545ghz.dat")[:1501,1]
+clii = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clii_545ghz_fullmission.dat")[:1501,1]
 clkk = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clkk_pr4.dat")[:1501,1]
 clik = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/cls_clik_545ghz_pr4.dat")[:1501,1]
+#clii = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/separate_masks/cls_clii_545ghz.dat")[:1501,1]
+#clkk = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/separate_masks/cls_clkk_pr4.dat")[:1501,1]
+#clik = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/cls/separate_masks/cls_clik_545ghz_pr4.dat")[:1501,1]
+#clii_pr3 = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/separate_masks/cls_clii_545ghz_fionamask.dat")[:1501,1] * (1e6/58.04)**2 # MJy/sr -> uK_CMB
+#clkk_pr3 = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/separate_masks/cls_clkk_pr3.dat")[:1501,1]
+#clik_pr3 = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/separate_masks/cls_clik_545ghz_pr3_fionamask.dat")[:1501,1] * 1e6/58.04
 # cib spectra from BKSPT paper
 cib = np.load("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/patches_cibxkap_cibauto_clkk.npz")
 clik_bkspt = np.nanmean(cib['cibxkap'], axis=0) * (1e6/58.04) # MJy/sr -> uK_CMB
 clii_bkspt = np.nanmean(cib['cibauto'], axis=0) * (1e6/58.04)**2 # MJy/sr -> uK_CMB
 clkk_bkspt = cib['clkk']
 
-# try simple alm2cl
-# this is masked!
+## try simple anafast
+#cib_fiona_map_rh1 = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH1.fits")
+#cib_fiona_map_rh2 = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH2.fits")
+#kap_pr4_PP = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/kappa_map_PR4PP_nside2048.fits")
+#kap_pr4_TT = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/kappa_map_PR4TT_nside2048.fits")
 #cib_fiona_map = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_full.fits")
+#kap_pr4 = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/kappa_map_PR4MV_nside2048.fits")
+#cib_mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/545mask.fits")
+#kap_mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/mask_scalar.fits")
+##mask_common = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/545mask_pr4kappamask_common_v2.fits")
+##fsky = np.mean(mask_common**2)
+#cib_fiona_map_rh1 *= cib_mask
+#cib_fiona_map_rh2 *= cib_mask
+#cib_fiona_map *= cib_mask
+#kap_pr4_PP *= kap_mask
+#kap_pr4_TT *= kap_mask
+#kap_pr4 *= kap_mask
+#cib_fiona_map_rh1 = np.nan_to_num(cib_fiona_map_rh1, nan=0.0)
+#cib_fiona_map_rh2 = np.nan_to_num(cib_fiona_map_rh2, nan=0.0)
 #cib_fiona_map = np.nan_to_num(cib_fiona_map, nan=0.0)
-#cib_fiona_alm = hp.map2alm(cib_fiona_map)
-#clii_alm2cl = hp.alm2cl(cib_fiona_alm)
-# try simple anafast
-cib_fiona_map_rh1 = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH1.fits")
-cib_fiona_map_rh2 = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_RH2.fits")
-kap_pr4_PP = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/kappa_map_PR4PP_nside2048.fits")
-kap_pr4_TT = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/kappa_map_PR4TT_nside2048.fits")
-cib_fiona_map = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/CIB_3tracers_545_mask1_nside16NILC_full.fits")
-kap_pr4 = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/kappa_map_PR4MV_nside2048.fits")
-cib_mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/545mask.fits")
-kap_mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/PR42018like_maps/PR4_variations/mask_scalar.fits")
-#mask_common = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/fiona_cib/545mask_pr4kappamask_common_v2.fits")
-#fsky = np.mean(mask_common**2)
-cib_fiona_map_rh1 *= cib_mask
-cib_fiona_map_rh2 *= cib_mask
-cib_fiona_map *= cib_mask
-kap_pr4_PP *= kap_mask
-kap_pr4_TT *= kap_mask
-kap_pr4 *= kap_mask
-cib_fiona_map_rh1 = np.nan_to_num(cib_fiona_map_rh1, nan=0.0)
-cib_fiona_map_rh2 = np.nan_to_num(cib_fiona_map_rh2, nan=0.0)
-cib_fiona_map = np.nan_to_num(cib_fiona_map, nan=0.0)
-clii_anafast = hp.anafast(cib_fiona_map_rh1,cib_fiona_map_rh2) / (np.mean(cib_mask**2))
-clkk_anafast = hp.anafast(kap_pr4_PP,kap_pr4_TT) / (np.mean(kap_mask**2))
-clik_anafast = hp.anafast(kap_pr4,cib_fiona_map) / (np.mean(cib_mask*kap_mask))
+#clii_anafast = hp.anafast(cib_fiona_map_rh1,cib_fiona_map_rh2) / (np.mean(cib_mask**2))
+#clkk_anafast = hp.anafast(kap_pr4_PP,kap_pr4_TT) / (np.mean(kap_mask**2))
+#clik_anafast = hp.anafast(kap_pr4,cib_fiona_map) / (np.mean(cib_mask*kap_mask))
 
 # smooth
 fwhm_dell = 40 # smoothing width in multipoles (FWHM)
@@ -228,17 +234,22 @@ clkk_bkspt = gaussian_filter1d(clkk_bkspt, sigma=sigma, mode='nearest')
 clik = gaussian_filter1d(clik, sigma=sigma, mode='nearest')
 clii = gaussian_filter1d(clii, sigma=sigma, mode='nearest')
 clkk = gaussian_filter1d(clkk, sigma=sigma, mode='nearest')
-clik_anafast = gaussian_filter1d(clik_anafast, sigma=sigma, mode='nearest')
-clii_anafast = gaussian_filter1d(clii_anafast, sigma=sigma, mode='nearest')
-clkk_anafast = gaussian_filter1d(clkk_anafast, sigma=sigma, mode='nearest')
+#clik_anafast = gaussian_filter1d(clik_anafast, sigma=sigma, mode='nearest')
+#clii_anafast = gaussian_filter1d(clii_anafast, sigma=sigma, mode='nearest')
+#clkk_anafast = gaussian_filter1d(clkk_anafast, sigma=sigma, mode='nearest')
 
 # rho
+clfile_path = '/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lenspotentialCls.dat'
+ell,sltt,slee,slbb,slte,slpp,sltp,slep = utils.get_unlensedcls(clfile_path,1500)
+clkk_theory = slpp * (np.arange(1501)*(np.arange(1501)+1))**2/4
+#rho_bkspt = clik_bkspt / np.sqrt(clii_bkspt * clkk_bkspt)
+#rho = clik / np.sqrt(clii * clkk)
 rho_bkspt = clik_bkspt / np.sqrt(clii_bkspt * clkk_bkspt)
-rho = clik / np.sqrt(clii * clkk)
-rho_anafast = clik_anafast / np.sqrt(clii_anafast * clkk_anafast)
+rho = clik / np.sqrt(clii * clkk_theory)
+#rho_anafast = clik_anafast / np.sqrt(clii_anafast * clkk_anafast)
 print('rho_bkspt: ', rho_bkspt)
 print('rho: ', rho)
-print('rho_anafast: ', rho_anafast)
+#print('rho_anafast: ', rho_anafast)
 
 # plot
 plt.figure(0)
@@ -262,7 +273,7 @@ plt.clf()
 
 plt.plot(np.arange(1501), rho_bkspt[:1501], color='firebrick', alpha=0.5, label='rho BKSPT')
 plt.plot(np.arange(1501), rho[:1501], color='lightcoral', alpha=0.5, label='rho')
-plt.plot(np.arange(1501), rho_anafast[:1501], color='thistle', linestyle='--', alpha=1, label='rho from anafast')
+#plt.plot(np.arange(1501), rho_anafast[:1501], color='thistle', linestyle='--', alpha=1, label='rho from anafast')
 plt.ylim(0,2)
 
 plt.grid(True, linestyle="--", alpha=0.5)

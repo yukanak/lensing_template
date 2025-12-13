@@ -265,9 +265,9 @@ class btemplate():
                 resp = self.get_response(qe)
                 respall += resp
             n0   = 1/respall[:self.lmax+1]
-        elif idx==0:
+        elif idx==0 or idx>5000:
             print("load RDN0")
-            n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.rdn0fname%self.qe.upper())[:self.lmax+1]
+            n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.rdn0fname%(self.qe.upper(),idx))[:self.lmax+1]
         else:
             n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.san0fname%self.qe.upper())[:self.lmax+1,idx-1]
         kfilt = self.clkk/(self.clkk+n0)
@@ -315,6 +315,15 @@ class btemplate():
 
         return bmap
 
+    def get_bmap_in_agora(self,idx):
+
+        #fname="/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch/agora_90ghz_withcmb_rotated_%i.alm"%idx
+        fname="/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch/cmbonly/agora_90ghz_cmbonly_rotated_%i.alm"%idx
+        blm  = hp.read_alm(fname, hdu=[3])
+        bmap = hp.alm2map(blm, self.nside)
+
+        return bmap
+
     def tp2rd(self, tht, phi):
         ra=phi/np.pi*180.0
         dec=((tht*-1)+np.pi/2.0)/np.pi*180.
@@ -337,7 +346,7 @@ class btemplate():
             auto     = hp.anafast(btpl_map * mask)/fsky
             cross = auto_in = None
 
-            if idx != 0:
+            if idx != 0:# and idx <= 500:
                 if idx <= 250:
                     bmap_in  = self.get_bmap_in(idx)
                 elif idx <= 500:
@@ -352,6 +361,8 @@ class btemplate():
                     bmap_in = np.zeros_like(bmap_full)
                     bmap_in[pix] = bmap_full[pix_antipode] # full-sky map whose values over patch 1 are the values from patch 2
                     bmap_in *= -1
+                else:
+                    bmap_in  = self.get_bmap_in_agora(idx)
                 cross    = hp.anafast(btpl_map * mask, bmap_in * mask)/fsky
                 auto_in  = hp.anafast(bmap_in * mask)/fsky
 

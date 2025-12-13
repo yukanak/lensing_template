@@ -25,6 +25,7 @@ scal = 1e8
 fwhm_arcmin = 20.0
 fwhm_rad = np.radians(fwhm_arcmin / 60.0)  # convert arcmin to radians
 bl = hp.gauss_beam(fwhm=fwhm_rad, lmax=4096)
+didx = 0
 
 bt_standard_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_0001.fits')
 bt_standard_sim1 = hp.almxfl(bt_standard_sim1, bl)
@@ -38,25 +39,46 @@ bt_pp_sim1_map = hp.alm2map(bt_pp_sim1,nside=nside)
 diff_sim1 = bt_standard_sim1_map - bt_prfhrd_sim1_map
 diff_sim1_pp = bt_standard_sim1_map - bt_pp_sim1_map
 
-bt_standard = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_0000.fits')
+bt_standard = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_%04d.fits'%didx)
 bt_standard = hp.almxfl(bt_standard, bl)
 bt_standard_map = hp.alm2map(bt_standard,nside=nside)
-bt_prfhrd = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_0000.fits')
+bt_prfhrd = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_%04d.fits'%didx)
 bt_prfhrd = hp.almxfl(bt_prfhrd, bl)
 bt_prfhrd_map = hp.alm2map(bt_prfhrd,nside=nside)
-bt_pp = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_0000.fits')
+bt_pp = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_%04d.fits'%didx)
 bt_pp = hp.almxfl(bt_pp, bl)
 bt_pp_map = hp.alm2map(bt_pp,nside=nside)
 diff = bt_standard_map - bt_prfhrd_map
 diff_pp = bt_standard_map - bt_pp_map
 diff_pp_prfhrd = bt_prfhrd_map - bt_pp_map
 
-a_standard, _, _ = btmp_standard.get_masked_spec(0)
+a_standard, _, _ = btmp_standard.get_masked_spec(didx)
 auto_standard = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))])
-a_prfhrd, _, _ = btmp_prfhrd.get_masked_spec(0)
+a_prfhrd, _, _ = btmp_prfhrd.get_masked_spec(didx)
 auto_prfhrd = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
-a_pp, _, _ = btmp_pp.get_masked_spec(0)
+a_pp, _, _ = btmp_pp.get_masked_spec(didx)
 auto_pp = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+
+# Agora sims
+idxs = np.arange(10)+5001
+autos_standard_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_pp_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+for ii, idx in enumerate(idxs):
+    print(idx)
+    a_standard, _, _ = btmp_standard.get_masked_spec(idx)
+    a_standard = [a_standard[digitized == i].mean() for i in range(1, len(lbins))]
+    a_prfhrd, _, _ = btmp_prfhrd.get_masked_spec(idx)
+    a_prfhrd = [a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
+    a_pp, _, _ = btmp_pp.get_masked_spec(idx)
+    a_pp = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
+
+    autos_standard_agora[ii,:] = np.array(a_standard)
+    autos_prfhrd_agora[ii,:] = np.array(a_prfhrd)
+    autos_pp_agora[ii,:] = np.array(a_pp)
+auto_standard_agora = np.mean(autos_standard_agora, axis=0)
+auto_prfhrd_agora = np.mean(autos_prfhrd_agora, axis=0)
+auto_pp_agora = np.mean(autos_pp_agora, axis=0)
 
 # Get error bars from sims...
 idxs = np.arange(499)+1
@@ -125,6 +147,9 @@ plt.plot(np.zeros(4096),'k--',lw=0.8,dashes=(6,3))
 plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_prfhrd)) - auto_mean_prfhrd) * scal, yerr=auto_std_prfhrd * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd")
 plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_pp)) - auto_mean_pp) * scal, yerr=auto_std_pp * scal, color='darkblue', linestyle='-', label="btemplate auto diff standard - pol-only")
 plt.errorbar(bin_centers, ((np.array(auto_prfhrd) - np.array(auto_pp)) - auto_mean_pp_prfhrd) * scal, yerr=auto_std_pp_prfhrd * scal, color='forestgreen', linestyle='-', label="btemplate auto diff prfhrd - pol-only")
+plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_prfhrd_agora)) - auto_mean_prfhrd) * scal, yerr=auto_std_prfhrd * scal, color='pink', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_pp_agora)) - auto_mean_pp) * scal, yerr=auto_std_pp * scal, color='cornflowerblue', linestyle='--', label="btemplate auto diff standard - pol-only, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_prfhrd_agora) - np.array(auto_pp_agora)) - auto_mean_pp_prfhrd) * scal, yerr=auto_std_pp_prfhrd * scal, color='lightgreen', linestyle='--', label="btemplate auto diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
 plt.legend(loc='upper right', fontsize='medium')
 plt.xscale('log')
 plt.xlabel(r"$\ell$")
@@ -133,19 +158,19 @@ plt.xlim(10,2000)
 plt.savefig('figs/btemplates_data_spec_diff.png',bbox_inches='tight')
 
 # Diff vs correlation coefficient
-plt.figure(0)
-plt.clf()
-plt.scatter(((np.array(auto_standard) - np.array(auto_prfhrd)) - auto_mean_prfhrd) * scal, r_prfhrd, color='firebrick', linestyle='-', label="prfhrd", s=10)
-plt.scatter(((np.array(auto_standard) - np.array(auto_pp)) - auto_mean_pp) * scal, r_pp, color='darkblue', linestyle='-', label="pol-only", s=10)
-plt.scatter(np.zeros_like(auto_standard), r_std, color="gray", label="standard", s=10)
-plt.axhline(0, color="darkgray", lw=1, linestyle="--")
-plt.axvline(0, color="darkgray", lw=1, linestyle="--")
-plt.xlabel(r"btemplate auto diff (standard - alt tracer)")
-plt.ylabel(r"correlation coefficient $r$")
-plt.title(r"correlation coefficient vs $\Delta C_\ell^{BB}$ across bins")
-plt.legend()
-plt.ylim(0.4,0.8)
-plt.savefig('figs/btemplates_correlation_coeff_vs_data_spec_diff.png',bbox_inches='tight')
+#plt.figure(0)
+#plt.clf()
+#plt.scatter(((np.array(auto_standard) - np.array(auto_prfhrd)) - auto_mean_prfhrd) * scal, r_prfhrd, color='firebrick', linestyle='-', label="prfhrd", s=10)
+#plt.scatter(((np.array(auto_standard) - np.array(auto_pp)) - auto_mean_pp) * scal, r_pp, color='darkblue', linestyle='-', label="pol-only", s=10)
+#plt.scatter(np.zeros_like(auto_standard), r_std, color="gray", label="standard", s=10)
+#plt.axhline(0, color="darkgray", lw=1, linestyle="--")
+#plt.axvline(0, color="darkgray", lw=1, linestyle="--")
+#plt.xlabel(r"btemplate auto diff (standard - alt tracer)")
+#plt.ylabel(r"correlation coefficient $r$")
+#plt.title(r"correlation coefficient vs $\Delta C_\ell^{BB}$ across bins")
+#plt.legend()
+#plt.ylim(0.4,0.8)
+#plt.savefig('figs/btemplates_correlation_coeff_vs_data_spec_diff.png',bbox_inches='tight')
 
 # Get the chi-squared
 #diff_vec = (np.array(auto_standard) - np.array(auto_prfhrd)) - auto_mean_prfhrd

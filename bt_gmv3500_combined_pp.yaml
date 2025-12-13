@@ -12,7 +12,7 @@ phi:
   #dir_resp: "/lcrc/project/SPT3G/users/ac.yomori/projects/spt3g_lensing_20192020/lensrec/081024/gmvjtp/autotf_v2_lmint350_lminp350_lmaxt3500_lmaxp3500_mmin100_aggcinv_noinpaint/%s/" #GMV/"
   qe: "qPP"
   san0fname: "SAN0_array_%s_spice_nrm.npy"
-  rdn0fname: "RDN0_%s.npy"
+  rdn0fname: "RDN0_%s_%i.npy"
   dir_combined_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_qe_cib_phi_pp_tracer/"
 
 cinve:

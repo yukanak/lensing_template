@@ -112,31 +112,3 @@ plt.tight_layout()
 plt.savefig('/home/users/yukanaka/lensing_template/figs/cib_sims.png')
 '''
 
-'''
-# MAKE CIB-BASED PHI TRACER
-#wiener_filter = np.zeros_like(clik); wiener_filter[2:] = clik[2:]/clii[2:]
-#klm = hp.almxfl(I_alm, wiener_filter)
-#hp.write_alm(dir_out+f'cib_tracer_alm_seed{idx}.alm', klm)
-
-# CHECK
-clik_sim1 = hp.alm2cl(klm,I_alm) # should match clik
-clkk_sim1 = hp.alm2cl(klm) # should match clik**2/clii
-clkk_input_sim1 = hp.alm2cl(klm,input_klm) # should match clik**2/clii
-rho_sim1 = clkk_input_sim1 / np.sqrt(clkk_sim1 * hp.alm2cl(input_klm))
-# Plot
-plt.figure(0)
-plt.clf()
-plt.axhline(y=1, color='k', linestyle='--')
-plt.plot(l, clik_sim1/clik, color='lightcoral', alpha=0.5, label='clik sim 1 / clik')
-plt.plot(l, clkk_sim1/(clik**2/clii), color='cornflowerblue', alpha=0.5, label='clkk sim 1 / (wiener filter**2 * clii)')
-plt.plot(l, clkk_input_sim1/(clik**2/clii), color='orange', alpha=0.5, label='clkk sim 1 x input klm / (wiener filter**2 * clii)')
-plt.plot(l, rho_sim1/(clik/np.sqrt(clii*clkk)), linestyle='--', alpha=0.5, color='lightgreen', label='rho ratio: (clkk_input_sim1 / sqrt(clkk_sim1*clkk_input)) / (clik / sqrt(clii*clkk))')
-plt.grid(True, linestyle="--", alpha=0.5)
-plt.xlabel('$\ell$')
-plt.legend(loc='upper right', fontsize='small')
-plt.xscale('log')
-plt.xlim(10,lmax)
-plt.tight_layout()
-plt.savefig('/home/users/yukanaka/lensing_template/figs/cib_sims.png')
-'''
-

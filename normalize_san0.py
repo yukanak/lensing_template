@@ -33,13 +33,16 @@ def parse_path(yaml):
 n0_std = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_mh.yaml'),498,'gmv','N0',N0=None,Lmin=24,Lmax=2500,use_cache=True,verbose=False)
 n0_prfhrd = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_prfhrd.yaml'),498,'gmvbhttprf','N0',N0=None,Lmin=24,Lmax=2500,use_cache=True,verbose=False)
 n0_pp = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_sqe.yaml'),498,'qpp','N0',N0=None,Lmin=24,Lmax=2500,use_cache=True,verbose=False)
-rdn0_std = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_mh.yaml'),498,'gmv','RDN0',N0=n0_std,Lmin=24,Lmax=2500,use_cache=True,verbose=False,didx=0)
-rdn0_prfhrd = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_prfhrd.yaml'),498,'gmvbhttprf','RDN0',N0=n0_prfhrd,Lmin=24,Lmax=2500,use_cache=True,verbose=False,didx=0)
-rdn0_pp = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_sqe.yaml'),498,'qpp','RDN0',N0=n0_pp,Lmin=24,Lmax=2500,use_cache=True,verbose=False,didx=0)
-np.save("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/sqe052425/sqe/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/SAN0/RDN0_QPP.npy",rdn0_pp)
-#np.save("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4_prftsz/SAN0/RDN0_GMVBHTTPRF.npy",rdn0_prfhrd)
-#np.save("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/SAN0/RDN0_GMV.npy",rdn0_std)
 
+for i in np.arange(10)+5001:
+    rdn0_std = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_mh.yaml'),498,'gmv','RDN0',N0=n0_std,Lmin=24,Lmax=2500,use_cache=True,verbose=False,didx=i)
+    rdn0_prfhrd = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_prfhrd.yaml'),498,'gmvbhttprf','RDN0',N0=n0_prfhrd,Lmin=24,Lmax=2500,use_cache=True,verbose=False,didx=i)
+    rdn0_pp = hutils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_sqe.yaml'),498,'qpp','RDN0',N0=n0_pp,Lmin=24,Lmax=2500,use_cache=True,verbose=False,didx=i)
+    np.save(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/sqe052425/sqe/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/SAN0/RDN0_QPP_{i}.npy",rdn0_pp)
+    np.save(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4_prftsz/SAN0/RDN0_GMVBHTTPRF_{i}.npy",rdn0_prfhrd)
+    np.save(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/SAN0/RDN0_GMV_{i}.npy",rdn0_std)
+
+'''
 san0_pp = np.load("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/sqe052425/sqe/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/SAN0/SAN0_array_PP_spice.npy")[:,1:]
 san0_prfhrd = np.load("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4_prftsz/SAN0/SAN0_array_GMVBHTTPRF_spice.npy")[:,1:]
 san0_std = np.load("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/SAN0/SAN0_array_GMV_spice.npy")[:,1:]
@@ -90,5 +93,5 @@ plt.xlim(10,lmax)
 plt.ylim(1e-8,1e-7)
 plt.tight_layout()
 plt.savefig(f'/home/users/yukanaka/lensing_template/figs/san0_prfhrd.png',bbox_inches='tight')
-
+'''
 
