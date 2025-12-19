@@ -26,10 +26,11 @@ def rd2tp(ra, dec):
 
 # https://arxiv.org/pdf/2212.07420 equations 89 - 92
 # https://arxiv.org/pdf/1705.02332 equations 7 - 9
-yaml_file = 'bt_gmv3500_combined_pp.yaml'
-btmp = bt.btemplate(yaml_file)
-#lmax = btmp.lmax_b
-lmax = 1500
+# NOTE: change below
+yaml_file = 'bt_gmv3500_combined_lenz.yaml'
+btmp = bt.btemplate(yaml_file,combined_tracer=True)
+lmax = btmp.lmax_b
+#lmax = 1500
 nside = btmp.nside
 mask = hp.read_map(btmp.maskfname)
 fsky = np.sum(mask**2)/mask.size
@@ -42,10 +43,10 @@ klm1_map = hp.alm2map(klm1, nside)
 auto1 = hp.anafast(klm1_map * mask, lmax=lmax)/fsky
 
 # Get CIB-based phi tracer
-#klm2 = hp.read_alm(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_phi_tracer/cib_klm_seed{idx}.alm')
+#klm2 = hp.read_alm(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/lenz_cib_phi_tracer/cib_klm_seed{idx}.alm')
 #klm2_map = hp.alm2map(klm2, nside)
-klm2_map = hp.read_map(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_phi_pp_tracer/cib_tracer_seed{idx}.fits')
-#TODO: there will be ringing here...
+klm2_map = hp.read_map(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/lenz_cib_phi_tracer/cib_tracer_seed{idx}.fits')
+# TODO: there will be ringing here...
 klm2 = hp.map2alm(klm2_map, lmax=lmax)
 auto2 = hp.anafast(klm2_map * mask, lmax=lmax)/fsky
 cross12 = hp.anafast(klm1_map * mask, klm2_map * mask, lmax=lmax)/fsky
@@ -95,6 +96,5 @@ w1 = rhoinv11 * rho1k + rhoinv12 * rho2k
 w2 = rhoinv22 * rho2k + rhoinv21 * rho1k
 klm_combined = hp.almxfl(klm1,w1*np.sqrt(autok/auto1)) + hp.almxfl(klm2,w2*np.sqrt(autok/auto2))
 klm_combined = np.nan_to_num(klm_combined, nan=0.0, posinf=0.0, neginf=0.0)
-hp.write_alm(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_qe_cib_phi_pp_tracer/klm_combined_cib_qe_pp_seed{idx}.alm', klm_combined)#, overwrite=True)
-
+hp.write_alm(btmp.dir_combined_tracer+f'/klm_combined_cib_qe_seed{idx}.alm', klm_combined)#, overwrite=True)
 

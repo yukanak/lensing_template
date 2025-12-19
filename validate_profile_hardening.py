@@ -85,35 +85,29 @@ cross_var_prfhrd_gaussian = np.var(cross_prfhrd, axis=0)
 auto_input_mean_prfhrd_gaussian = np.mean(auto_in_prfhrd, axis=0)
 auto_input_var_prfhrd_gaussian = np.var(auto_in_prfhrd, axis=0)
 
-#=============================================================================#
-'''
-beam = np.loadtxt('/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch/compiled_2020_beams_extended.txt')
-bl = beam[:16000+1,1]
+# Get rho
+rho_gaussian_std = cross_mean_standard_gaussian / np.sqrt(auto_mean_standard_gaussian * auto_input_mean_standard_gaussian) 
+rho_gaussian_prfhrd = cross_mean_prfhrd_gaussian / np.sqrt(auto_mean_prfhrd_gaussian * auto_input_mean_prfhrd_gaussian) 
+rho_agora_std = cross_mean_standard / np.sqrt(auto_mean_standard * auto_input_mean_standard) 
+rho_agora_prfhrd = cross_mean_prfhrd / np.sqrt(auto_mean_prfhrd * auto_input_mean_prfhrd) 
 
-# Input full-sky map
-# Primary CMB has to be for Planck 2018 cosmology not MDPL2 cosmology
-#cmb = hp.read_map('/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch/lensed_planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_agoraphiNG_scalep18_teb1_seed1001_lmax17000_nside8192_interp1.6_method1_pol_1_lensedmap.fits',field=[0,1,2])
-cmb = hp.read_map(f'/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/lensed_planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_agoraphiNG_scalep18_teb1_seed1001_v2_lmax17000_nside8192_interp1.6_method1_pol_1_lensedmap.fits',field=[0,1,2])
-
-tot_t = cmb[0]
-tot_q = cmb[1]
-tot_u = cmb[2]
-
-alm  = hp.map2alm([tot_t,tot_q,tot_u],lmax=16000,use_pixel_weights=True)
-#alm[0] = hp.almxfl(alm[0],bl)
-#alm[1] = hp.almxfl(alm[1],bl)
-#alm[2] = hp.almxfl(alm[2],bl)
-blm = alm[2]
-
-# Seed 5001 is not actually rotated, this is still full-sky, after applying beam
-#fname = "/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch/cmbonly/agora_90ghz_cmbonly_rotated_5001.alm"
-#blm  = hp.read_alm(fname, hdu=[3])
-
-clbb_fullsky = hp.alm2cl(blm)[:6144]
-clbb_fullsky = [clbb_fullsky[digitized == i].mean() for i in range(1, len(lbins))]
-'''
-#=============================================================================#
 ell,sltt,slee,slbb,slte = utils.get_lensedcls('/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lensedCls.dat',lmax=1000)
+
+plt.figure(0)
+plt.clf()
+plt.plot(bin_centers, rho_agora_std, color='firebrick', alpha=1, label='rho Agora standard')
+plt.plot(bin_centers, rho_gaussian_std, color='hotpink', alpha=1, label='rho Gaussian standard')
+plt.plot(bin_centers, rho_agora_prfhrd, color='salmon', alpha=1, linestyle='--', label='rho Agora prfhrd')
+plt.plot(bin_centers, rho_gaussian_prfhrd, color='pink', alpha=1, linestyle='--', label='rho Gaussian prfhrd')
+plt.grid(True, linestyle="--", alpha=0.5)                                       
+plt.legend(loc='upper right', fontsize='small')                                 
+plt.xscale('log')                                                               
+plt.xlim(10,1500)                                                               
+plt.tight_layout()                                                              
+plt.ylim(0,1)
+plt.xlabel(r"$\ell$")
+plt.ylabel(r"$\rho$")
+plt.savefig('figs/btemplates_check_prfhrd_agora.png',bbox_inches='tight')
 
 plt.figure(0)
 plt.clf()

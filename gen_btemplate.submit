@@ -11,5 +11,6 @@
 #~/lensing_template/gen_btemplate.py bt_gmv3500_prfhrd.yaml $SLURM_ARRAY_TASK_ID
 #~/lensing_template/gen_btemplate.py bt_gmv3500_pp.yaml $SLURM_ARRAY_TASK_ID
 #python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
-python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_pp.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_pp.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
 
+python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_lenz.yaml $SLURM_ARRAY_TASK_ID --combined_tracer

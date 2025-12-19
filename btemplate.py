@@ -199,8 +199,6 @@ class btemplate():
             self.purmatfname = bkconfig['purmat']['dir']+bkconfig['purmat']['fname']
             self.puremask    = bkconfig['purmat']['mask']
 
-
-
     def get_response(self, qe):
         resp = np.load(self.dir_resp%qe+"respavg%s_nops.npz"%qe)['resp']
         return resp[:self.lmax+1]
@@ -285,7 +283,7 @@ class btemplate():
         fname = self.outdir+self.btpl_fname%idx
         if not os.path.isfile(fname):
             if self.combined_tracer:
-                klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_pp_seed%d.alm"%idx,hdu=1)
+                klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d.alm"%idx,hdu=1)
                 # Already WF at the combination step so no need for kfilt
                 pwf = hp.almxfl(klm, safe_inv(self.phi2kap(self.ls)))
             else:
