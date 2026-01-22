@@ -28,9 +28,9 @@ ep_ells:
   lmin_p: 24
   mmin_e: 20
 
-#masks:
-#  phimask: pconfig['pspec']['file_mask']
-#  qumask:  econfig['mask_fname']
+masks:
+  phimask: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits"
+  commonmask: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits"
 
 #input_maps:
 #  bmap_in_fname:

@@ -9,10 +9,18 @@ sys.path.append('/home/users/yukanaka/healqest/healqest/src/')
 import healqest_utils as utils
 from scipy.interpolate import interp1d
 
+#yaml_file_agoraGfgs = 'bt_gmv3500_prfhrd_agoraGfgs.yaml'
+#btmp_agoraGfgs = bt.btemplate(yaml_file_agoraGfgs)
 yaml_file = 'bt_gmv3500_prfhrd.yaml'
 btmp = bt.btemplate(yaml_file)
 yaml_file_standard = 'bt_gmv3500.yaml'
 btmp_standard = bt.btemplate(yaml_file_standard)
+yaml_file_pp = 'bt_gmv3500_pp.yaml'
+btmp_pp = bt.btemplate(yaml_file_pp)
+yaml_file_standard_agoraGfgs = 'bt_gmv3500_agoraGfgs.yaml'
+btmp_standard_agoraGfgs = bt.btemplate(yaml_file_standard_agoraGfgs)
+yaml_file_standard_agoraGfgs_lmax1000 = 'bt_gmv3500_agoraGfgs_lmax1000.yaml'
+btmp_standard_agoraGfgs_lmax1000 = bt.btemplate(yaml_file_standard_agoraGfgs_lmax1000)
 nside = btmp.nside
 mask = hp.read_map(btmp.maskfname)
 fsky = np.sum(mask**2)/mask.size
@@ -23,12 +31,60 @@ digitized = np.digitize(np.arange(6144), lbins)
 #=============================================================================#
 
 idxs = np.arange(10) + 5001
+auto_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_in_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_standard_agoraGfgs_lmax1000 = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_standard_agoraGfgs_lmax1000 = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_in_standard_agoraGfgs_lmax1000 = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_in_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+for ii, idx in enumerate(idxs):
+    print(idx)
+    a_standard_agoraGfgs, c_standard_agoraGfgs, a_in_standard_agoraGfgs = btmp_standard_agoraGfgs.get_masked_spec(idx)
+    auto_standard_agoraGfgs[ii,:] = [a_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    cross_standard_agoraGfgs[ii,:] = [c_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    auto_in_standard_agoraGfgs[ii,:] = [a_in_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    #a_prfhrd_agoraGfgs, c_prfhrd_agoraGfgs, a_in_prfhrd_agoraGfgs = btmp_agoraGfgs.get_masked_spec(idx)
+    #auto_prfhrd_agoraGfgs[ii,:] = [a_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    #cross_prfhrd_agoraGfgs[ii,:] = [c_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    #auto_in_prfhrd_agoraGfgs[ii,:] = [a_in_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    a_standard_agoraGfgs_lmax1000, c_standard_agoraGfgs_lmax1000, a_in_standard_agoraGfgs_lmax1000 = btmp_standard_agoraGfgs_lmax1000.get_masked_spec(idx)
+    auto_standard_agoraGfgs_lmax1000[ii,:] = [a_standard_agoraGfgs_lmax1000[digitized == i].mean() for i in range(1, len(lbins))]
+    cross_standard_agoraGfgs_lmax1000[ii,:] = [c_standard_agoraGfgs_lmax1000[digitized == i].mean() for i in range(1, len(lbins))]
+    auto_in_standard_agoraGfgs_lmax1000[ii,:] = [a_in_standard_agoraGfgs_lmax1000[digitized == i].mean() for i in range(1, len(lbins))]
+auto_mean_standard_agoraGfgs = np.mean(auto_standard_agoraGfgs, axis=0)
+auto_var_standard_agoraGfgs = np.var(auto_standard_agoraGfgs, axis=0)
+cross_mean_standard_agoraGfgs = np.mean(cross_standard_agoraGfgs, axis=0)
+cross_var_standard_agoraGfgs = np.var(cross_standard_agoraGfgs, axis=0)
+auto_input_mean_standard_agoraGfgs = np.mean(auto_in_standard_agoraGfgs, axis=0)
+auto_input_var_standard_agoraGfgs = np.var(auto_in_standard_agoraGfgs, axis=0)
+auto_mean_prfhrd_agoraGfgs = np.mean(auto_prfhrd_agoraGfgs, axis=0)
+auto_var_prfhrd_agoraGfgs = np.var(auto_prfhrd_agoraGfgs, axis=0)
+cross_mean_prfhrd_agoraGfgs = np.mean(cross_prfhrd_agoraGfgs, axis=0)
+cross_var_prfhrd_agoraGfgs = np.var(cross_prfhrd_agoraGfgs, axis=0)
+auto_input_mean_prfhrd_agoraGfgs = np.mean(auto_in_prfhrd_agoraGfgs, axis=0)
+auto_input_var_prfhrd_agoraGfgs = np.var(auto_in_prfhrd_agoraGfgs, axis=0)
+auto_mean_standard_agoraGfgs_lmax1000 = np.mean(auto_standard_agoraGfgs_lmax1000, axis=0)
+auto_var_standard_agoraGfgs_lmax1000 = np.var(auto_standard_agoraGfgs_lmax1000, axis=0)
+cross_mean_standard_agoraGfgs_lmax1000 = np.mean(cross_standard_agoraGfgs_lmax1000, axis=0)
+cross_var_standard_agoraGfgs_lmax1000 = np.var(cross_standard_agoraGfgs_lmax1000, axis=0)
+auto_input_mean_standard_agoraGfgs_lmax1000 = np.mean(auto_in_standard_agoraGfgs_lmax1000, axis=0)
+auto_input_var_standard_agoraGfgs_lmax1000 = np.var(auto_in_standard_agoraGfgs_lmax1000, axis=0)
+
+#=============================================================================#
+
+idxs = np.arange(10) + 5001
 auto_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_in_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
     a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx)
@@ -39,6 +95,10 @@ for ii, idx in enumerate(idxs):
     auto_prfhrd[ii,:] = [a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
     cross_prfhrd[ii,:] = [c_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_prfhrd[ii,:] = [a_in_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
+    a_pp, c_pp, a_in_pp = btmp_pp.get_masked_spec(idx)
+    auto_pp[ii,:] = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
+    cross_pp[ii,:] = [c_pp[digitized == i].mean() for i in range(1, len(lbins))]
+    auto_in_pp[ii,:] = [a_in_pp[digitized == i].mean() for i in range(1, len(lbins))]
 auto_mean_standard = np.mean(auto_standard, axis=0)
 auto_var_standard = np.var(auto_standard, axis=0)
 cross_mean_standard = np.mean(cross_standard, axis=0)
@@ -51,6 +111,12 @@ cross_mean_prfhrd = np.mean(cross_prfhrd, axis=0)
 cross_var_prfhrd = np.var(cross_prfhrd, axis=0)
 auto_input_mean_prfhrd = np.mean(auto_in_prfhrd, axis=0)
 auto_input_var_prfhrd = np.var(auto_in_prfhrd, axis=0)
+auto_mean_pp = np.mean(auto_pp, axis=0)
+auto_var_pp = np.var(auto_pp, axis=0)
+cross_mean_pp = np.mean(cross_pp, axis=0)
+cross_var_pp = np.var(cross_pp, axis=0)
+auto_input_mean_pp = np.mean(auto_in_pp, axis=0)
+auto_input_var_pp = np.var(auto_in_pp, axis=0)
 
 #=============================================================================#
 
@@ -62,6 +128,9 @@ auto_in_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_in_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
     a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx)
@@ -72,6 +141,10 @@ for ii, idx in enumerate(idxs):
     auto_prfhrd[ii,:] = [a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
     cross_prfhrd[ii,:] = [c_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_prfhrd[ii,:] = [a_in_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
+    a_pp, c_pp, a_in_pp = btmp_pp.get_masked_spec(idx)
+    auto_pp[ii,:] = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
+    cross_pp[ii,:] = [c_pp[digitized == i].mean() for i in range(1, len(lbins))]
+    auto_in_pp[ii,:] = [a_in_pp[digitized == i].mean() for i in range(1, len(lbins))]
 auto_mean_standard_gaussian = np.mean(auto_standard, axis=0)
 auto_var_standard_gaussian = np.var(auto_standard, axis=0)
 cross_mean_standard_gaussian = np.mean(cross_standard, axis=0)
@@ -84,27 +157,43 @@ cross_mean_prfhrd_gaussian = np.mean(cross_prfhrd, axis=0)
 cross_var_prfhrd_gaussian = np.var(cross_prfhrd, axis=0)
 auto_input_mean_prfhrd_gaussian = np.mean(auto_in_prfhrd, axis=0)
 auto_input_var_prfhrd_gaussian = np.var(auto_in_prfhrd, axis=0)
+auto_mean_pp_gaussian = np.mean(auto_pp, axis=0)
+auto_var_pp_gaussian = np.var(auto_pp, axis=0)
+cross_mean_pp_gaussian = np.mean(cross_pp, axis=0)
+cross_var_pp_gaussian = np.var(cross_pp, axis=0)
+auto_input_mean_pp_gaussian = np.mean(auto_in_pp, axis=0)
+auto_input_var_pp_gaussian = np.var(auto_in_pp, axis=0)
+
+#=============================================================================#
 
 # Get rho
 rho_gaussian_std = cross_mean_standard_gaussian / np.sqrt(auto_mean_standard_gaussian * auto_input_mean_standard_gaussian) 
 rho_gaussian_prfhrd = cross_mean_prfhrd_gaussian / np.sqrt(auto_mean_prfhrd_gaussian * auto_input_mean_prfhrd_gaussian) 
+rho_gaussian_pp = cross_mean_pp_gaussian / np.sqrt(auto_mean_pp_gaussian * auto_input_mean_pp_gaussian) 
 rho_agora_std = cross_mean_standard / np.sqrt(auto_mean_standard * auto_input_mean_standard) 
 rho_agora_prfhrd = cross_mean_prfhrd / np.sqrt(auto_mean_prfhrd * auto_input_mean_prfhrd) 
+rho_agora_pp = cross_mean_pp / np.sqrt(auto_mean_pp * auto_input_mean_pp) 
+rho_agora_std_agoraGfgs  = cross_mean_standard_agoraGfgs  / np.sqrt(auto_mean_standard_agoraGfgs  * auto_input_mean_standard_agoraGfgs ) 
+#rho_agora_prfhrd_agoraGfgs  = cross_mean_prfhrd_agoraGfgs  / np.sqrt(auto_mean_prfhrd_agoraGfgs  * auto_input_mean_prfhrd_agoraGfgs ) 
+
+#=============================================================================#
 
 ell,sltt,slee,slbb,slte = utils.get_lensedcls('/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lensedCls.dat',lmax=1000)
 
 plt.figure(0)
 plt.clf()
-plt.plot(bin_centers, rho_agora_std, color='firebrick', alpha=1, label='rho Agora standard')
-plt.plot(bin_centers, rho_gaussian_std, color='hotpink', alpha=1, label='rho Gaussian standard')
-plt.plot(bin_centers, rho_agora_prfhrd, color='salmon', alpha=1, linestyle='--', label='rho Agora prfhrd')
-plt.plot(bin_centers, rho_gaussian_prfhrd, color='pink', alpha=1, linestyle='--', label='rho Gaussian prfhrd')
+plt.plot(bin_centers, rho_gaussian_std, color='firebrick', alpha=1, label='rho Gaussian standard')
+plt.plot(bin_centers, rho_gaussian_prfhrd, color='forestgreen', alpha=1, linestyle='-', label='rho Gaussian prfhrd')
+plt.plot(bin_centers, rho_gaussian_pp, color='darkblue', alpha=1, linestyle='-', label='rho Gaussian pol-only')
+plt.plot(bin_centers, rho_agora_std, color='salmon', alpha=1, linestyle='--', label='rho Agora standard')
+plt.plot(bin_centers, rho_agora_prfhrd, color='lightgreen', alpha=1, linestyle='--', label='rho Agora prfhrd')
+plt.plot(bin_centers, rho_agora_pp, color='cornflowerblue', alpha=1, linestyle='--', label='rho Agora pol-only')
 plt.grid(True, linestyle="--", alpha=0.5)                                       
 plt.legend(loc='upper right', fontsize='small')                                 
 plt.xscale('log')                                                               
 plt.xlim(10,1500)                                                               
 plt.tight_layout()                                                              
-plt.ylim(0,1)
+plt.ylim(0.4,0.8)
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$\rho$")
 plt.savefig('figs/btemplates_check_prfhrd_agora.png',bbox_inches='tight')
@@ -114,17 +203,30 @@ plt.clf()
 plt.plot(ell, slbb, color='gray', linestyle=':', label="CAMB theory slbb")
 #plt.plot(bin_centers, clbb_fullsky, color='orange', linestyle='-', label="input B auto, full-sky Agora 5001 (unrotated, beam applied)")
 #plt.plot(bin_centers, clbb_fullsky, color='orange', linestyle='-', label="input B auto, full-sky Agora 5001 (unrotated, beam NOT applied)")
-plt.errorbar(bin_centers, auto_input_mean_standard_gaussian, yerr=np.sqrt(auto_input_var_standard_gaussian), color='olive', linestyle='-', label="input B auto, Gaussian sims")
-plt.errorbar(bin_centers, auto_input_mean_standard, yerr=np.sqrt(auto_input_var_standard), color='forestgreen', linestyle='-', label="input B auto, Agora sims")
-plt.errorbar(bin_centers, auto_mean_standard, yerr=np.sqrt(auto_var_standard), color='firebrick', linestyle='-', label="btemplate auto, standard, Agora sims")
-plt.errorbar(bin_centers, cross_mean_standard, yerr=np.sqrt(cross_var_standard), color='darkblue', linestyle='-', label="btemplate x input B cross, standard, Agora sims")
-plt.errorbar(bin_centers, auto_mean_prfhrd, yerr=np.sqrt(auto_var_prfhrd), color='salmon', linestyle='--', label="btemplate auto, prfhrd, Agora sims")
-plt.errorbar(bin_centers, cross_mean_prfhrd, yerr=np.sqrt(cross_var_prfhrd), color='cornflowerblue', linestyle='--', label="btemplate x input B cross, prfhrd, Agora sims")
-plt.errorbar(bin_centers, auto_mean_standard_gaussian, yerr=np.sqrt(auto_var_standard_gaussian), color='hotpink', linestyle='-', label="btemplate auto, standard, Gaussian sims")
-plt.errorbar(bin_centers, cross_mean_standard_gaussian, yerr=np.sqrt(cross_var_standard_gaussian), color='rebeccapurple', linestyle='-', label="btemplate x input B cross, standard, Gaussian sims")
-plt.errorbar(bin_centers, auto_mean_prfhrd_gaussian, yerr=np.sqrt(auto_var_prfhrd_gaussian), color='pink', linestyle='--', label="btemplate auto, prfhrd, Gaussian sims")
-plt.errorbar(bin_centers, cross_mean_prfhrd_gaussian, yerr=np.sqrt(cross_var_prfhrd_gaussian), color='mediumpurple', linestyle='--', label="btemplate x input B cross, prfhrd, Gaussian sims")
-plt.legend(loc='upper left', fontsize='x-small', bbox_to_anchor=(1,0.5))
+
+#plt.errorbar(bin_centers, auto_mean_standard_gaussian, yerr=np.sqrt(auto_var_standard_gaussian), color='firebrick', linestyle='-', label="btemplate auto, standard, Gaussian sims")
+#plt.errorbar(bin_centers, auto_mean_prfhrd_gaussian, yerr=np.sqrt(auto_var_prfhrd_gaussian), color='forestgreen', linestyle='-', label="btemplate auto, prfhrd, Gaussian sims")
+#plt.errorbar(bin_centers, auto_mean_pp_gaussian, yerr=np.sqrt(auto_var_pp_gaussian), color='darkblue', linestyle='-', label="btemplate auto, pol-only, Gaussian sims")
+plt.errorbar(bin_centers, cross_mean_standard_gaussian, yerr=np.sqrt(cross_var_standard_gaussian), color='firebrick', linestyle='-', label="btemplate x input B cross, standard, Gaussian sims")
+plt.errorbar(bin_centers, cross_mean_prfhrd_gaussian, yerr=np.sqrt(cross_var_prfhrd_gaussian), color='forestgreen', linestyle='-', label="btemplate x input B cross, prfhrd, Gaussian sims")
+plt.errorbar(bin_centers, cross_mean_pp_gaussian, yerr=np.sqrt(cross_var_pp_gaussian), color='darkblue', linestyle='-', label="btemplate x input B cross, pol-only, Gaussian sims")
+
+#plt.errorbar(bin_centers, auto_input_mean_standard_gaussian, yerr=np.sqrt(auto_input_var_standard_gaussian), color='olive', linestyle='-', label="input B auto, Gaussian sims")
+#plt.errorbar(bin_centers, auto_input_mean_standard, yerr=np.sqrt(auto_input_var_standard), color='forestgreen', linestyle='-', label="input B auto, Agora sims")
+
+#plt.errorbar(bin_centers, auto_mean_standard, yerr=np.sqrt(auto_var_standard), color='salmon', linestyle='--', label="btemplate auto, standard, Agora sims")
+#plt.errorbar(bin_centers, auto_mean_prfhrd, yerr=np.sqrt(auto_var_prfhrd), color='lightgreen', linestyle='--', label="btemplate auto, prfhrd, Agora sims")
+#plt.errorbar(bin_centers, auto_mean_pp, yerr=np.sqrt(auto_var_pp), color='cornflowerblue', linestyle='--', label="btemplate auto, pol-only, Agora sims")
+#plt.errorbar(bin_centers, auto_mean_standard_agoraGfgs, yerr=np.sqrt(auto_var_standard_agoraGfgs), color='mediumpurple', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims")
+#plt.errorbar(bin_centers, auto_mean_standard_agoraGfgs_lmax1000, yerr=np.sqrt(auto_var_standard_agoraGfgs_lmax1000), color='plum', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims, lmax=1000")
+plt.errorbar(bin_centers, cross_mean_prfhrd_agoraGfgs , yerr=np.sqrt(cross_var_prfhrd_agoraGfgs), color='mediumseagreen', linestyle='--', label="btemplate x input B cross, prfhrd, Agora WITH G FG sims")
+plt.errorbar(bin_centers, cross_mean_standard, yerr=np.sqrt(cross_var_standard), color='salmon', linestyle='--', label="btemplate x input B cross, standard, Agora sims")
+plt.errorbar(bin_centers, cross_mean_prfhrd, yerr=np.sqrt(cross_var_prfhrd), color='lightgreen', linestyle='--', label="btemplate x input B cross, prfhrd, Agora sims")
+plt.errorbar(bin_centers, cross_mean_pp, yerr=np.sqrt(cross_var_pp), color='cornflowerblue', linestyle='--', label="btemplate x input B cross, pol-only, Agora sims")
+plt.errorbar(bin_centers, cross_mean_standard_agoraGfgs, yerr=np.sqrt(cross_var_standard_agoraGfgs), color='mediumpurple', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims")
+plt.errorbar(bin_centers, cross_mean_standard_agoraGfgs_lmax1000, yerr=np.sqrt(cross_var_standard_agoraGfgs_lmax1000), color='plum', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims, lmax=1000")
+#plt.legend(loc='upper left', fontsize='x-small', bbox_to_anchor=(1,0.5))
+plt.legend(loc='lower left', fontsize='x-small')
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$C_\ell^{BB}$ [$\mu K^2$]")
 plt.xscale('log')

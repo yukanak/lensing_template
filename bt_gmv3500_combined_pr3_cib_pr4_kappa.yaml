@@ -13,6 +13,9 @@ phi:
   qe: "GMV"   #'GMVbhTTprf'
   san0fname: "SAN0_array_%s_spice_nrm.npy"
   rdn0fname: "RDN0_%s_%i.npy"
+  dir_combined_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracers/combined_qe_pr3_cib_pr4_kappa_tracer/"
+  dir_cib_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/pr3_cib_pr4_kappa_tracer/"
+  combined_tracer_weights_dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/combined_qe_pr3_cib_pr4_kappa_tracer/'
 
 cinve:
   dir_cinve: "cinv_output_test_uncorr/"
@@ -25,16 +28,16 @@ ep_ells:
   lmin_p: 24
   mmin_e: 20
 
-#masks:
-#  phimask: pconfig['pspec']['file_mask']
-#  qumask:  econfig['mask_fname']
+masks:
+  phimask: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits"
+  commonmask: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits"
 
 #input_maps:
 #  bmap_in_fname:
 #  tebinfanem:
 
 outputs:
-  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/'
+  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_cib_qe_pr3_cib_pr4_kappa_standard/tuned/'
   btpl_fname: 'btmpl_alm_%04d.fits'
   btpl_spec_fname: 'btmpl_specs_%04d.npz'
   btpl_pure_spec_fname: 'btmpl_pure_specs_%04d.npz'

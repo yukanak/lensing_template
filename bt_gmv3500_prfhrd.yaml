@@ -1,6 +1,5 @@
 # yaml file for B template with GMV lmaxT=3500 standard phi
 
-# I know the yaml is titled "mh" but the rectype here is actually set to gmvjtp_sep
 phi_yaml: "/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_prfhrd.yaml"
 
 e_yaml: "/home/users/yukanaka/lensing_template/lowell_v3mocks_musebeamv41.yaml"

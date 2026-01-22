@@ -156,10 +156,15 @@ class btemplate():
 
         if self.combined_tracer:
             self.dir_combined_tracer = bconfig['phi']['dir_combined_tracer']
+            self.combined_tracer_weights_dir = bconfig['phi']['combined_tracer_weights_dir']
+            self.cib_tracer_dir = bconfig['phi']['dir_cib_tracer']
 
         #load phi yaml
         pconfig     = yaml.safe_load(open(bconfig['phi_yaml'], "rb"))
-        self.maskfname = pconfig['pspec']['mask_boundary']  ##TODO: test different masks
+        if self.combined_tracer:
+            self.maskfname = bconfig['masks']['commonmask']
+        else:
+            self.maskfname = pconfig['pspec']['mask_boundary']  ##TODO: test different masks
 
         #load cinve yaml
         econfig     = yaml.safe_load(open(bconfig['e_yaml'], "rb"))
@@ -279,11 +284,12 @@ class btemplate():
             self.e_lmmask = grid2alm(lmmask)
         return self.e_lmmask
 
-    def get_btpl_alm(self,idx):
+    def get_btpl_alm(self,idx,overwrite=False,savefile=True):
         fname = self.outdir+self.btpl_fname%idx
-        if not os.path.isfile(fname):
+        if overwrite or not os.path.isfile(fname):
             if self.combined_tracer:
-                klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d.alm"%idx,hdu=1)
+                #klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d.alm"%idx,hdu=1)
+                klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d_tuned.alm"%idx,hdu=1)
                 # Already WF at the combination step so no need for kfilt
                 pwf = hp.almxfl(klm, safe_inv(self.phi2kap(self.ls)))
             else:
@@ -297,7 +303,8 @@ class btemplate():
 
             qe      = qest.qest(self.qeconfig, self.qecls)
             _, blm  = qe.eval('bEP', ewf, pwf)
-            hp.write_alm(fname, blm)
+            if savefile:
+                hp.write_alm(fname, blm, overwrite=True)
         else:
             blm = hp.read_alm(fname, hdu=1)
         return blm
@@ -332,14 +339,14 @@ class btemplate():
         phi = ra/180.0*np.pi
         return tht,phi
 
-    def get_masked_spec(self, idx):
+    def get_masked_spec(self, idx, overwrite=False, savefile=True):
         # get non-BK purified spec
         fname = self.outdir+self.btpl_spec_fname%idx
-        if not os.path.isfile(fname):
+        if overwrite or not os.path.isfile(fname):
             mask = hp.read_map(self.maskfname)
             fsky = np.sum(mask**2)/mask.size
 
-            btpl_lm  = self.get_btpl_alm(idx)
+            btpl_lm  = self.get_btpl_alm(idx,overwrite=overwrite,savefile=savefile)
             btpl_map = hp.alm2map(btpl_lm, self.nside, lmax=self.lmax_b)
             auto     = hp.anafast(btpl_map * mask)/fsky
             cross = auto_in = None
@@ -363,8 +370,8 @@ class btemplate():
                     bmap_in  = self.get_bmap_in_agora(idx)
                 cross    = hp.anafast(btpl_map * mask, bmap_in * mask)/fsky
                 auto_in  = hp.anafast(bmap_in * mask)/fsky
-
-            np.savez(fname, auto=auto, cross=cross, auto_in=auto_in)
+            if savefile:
+                np.savez(fname, auto=auto, cross=cross, auto_in=auto_in)
         else:
             tmp   = np.load(fname)
             auto  = tmp['auto']

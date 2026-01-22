@@ -1,0 +1,39 @@
+# yaml file for B template with GMV lmaxT=3500 standard phi
+
+# I know the yaml is titled "mh" but the rectype here is actually set to gmvjtp_sep
+phi_yaml: "/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_agoraGfgs.yaml"
+
+e_yaml: "/home/users/yukanaka/lensing_template/lowell_v3mocks_musebeamv41.yaml"
+
+phi:
+  dir_phi: "/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch_gaussian_fgs/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/%s/"
+  dir_resp: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/%s/" #GMV/"
+  qe: "GMV"   #'GMVbhTTprf'
+  san0fname: "SAN0_array_%s_spice_nrm.npy"
+  rdn0fname: "RDN0_%s_%i.npy"
+
+cinve:
+  dir_cinve: "cinv_output_test_uncorr/"
+
+ep_ells:
+  lmax_b: 1000
+  lmax_p: 1000
+  lmax_e: 1000
+  lmin_e: 40
+  lmin_p: 24
+  mmin_e: 20
+
+#masks:
+#  phimask: pconfig['pspec']['file_mask']
+#  qumask:  econfig['mask_fname']
+
+#input_maps:
+#  bmap_in_fname:
+#  tebinfanem:
+
+outputs:
+  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/'
+  btpl_fname: 'btmpl_agoraGfgs_alm_lmax1000_%04d.fits'
+  btpl_spec_fname: 'btmpl_agoraGfgs_specs_lmax1000_%04d.npz'
+  btpl_pure_spec_fname: 'btmpl_pure_agoraGfgs_specs_lmax1000_%04d.npz'
+

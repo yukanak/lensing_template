@@ -7,14 +7,15 @@ yaml_file = 'bt_gmv3500.yaml'
 yaml_file_prfhrd = 'bt_gmv3500_prfhrd.yaml'
 yaml_file_pp = 'bt_gmv3500_pp.yaml'
 #yaml_file_combined = 'bt_gmv3500_combined_pp.yaml'
-yaml_file_combined = 'bt_gmv3500_combined.yaml'
+#yaml_file_combined = 'bt_gmv3500_combined.yaml'
+yaml_file_combined = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
 yaml_file_combined_lenz = 'bt_gmv3500_combined_lenz.yaml'
 idxs = np.arange(499)+1
 btmp_standard = bt.btemplate(yaml_file)
 btmp_prfhrd = bt.btemplate(yaml_file_prfhrd)
 btmp_pp = bt.btemplate(yaml_file_pp)
-btmp_combined = bt.btemplate(yaml_file_combined)
-btmp_combined_lenz = bt.btemplate(yaml_file_combined_lenz)
+btmp_combined = bt.btemplate(yaml_file_combined,combined_tracer=True)
+#btmp_combined_lenz = bt.btemplate(yaml_file_combined_lenz,combined_tracer=True)
 lmax = 4096
 l = np.arange(lmax+1)
 lbins = np.logspace(np.log10(30),np.log10(1000),20)
@@ -54,10 +55,10 @@ for ii, idx in enumerate(idxs):
     auto_combined[ii,:] = [a_combined[digitized == i].mean() for i in range(1, len(lbins))]
     cross_combined[ii,:] = [c_combined[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_combined[ii,:] = [a_in_combined[digitized == i].mean() for i in range(1, len(lbins))]
-    a_combined_lenz, c_combined_lenz, a_in_combined_lenz = btmp_combined_lenz.get_masked_spec(idx)
-    auto_combined_lenz[ii,:] = [a_combined_lenz[digitized == i].mean() for i in range(1, len(lbins))]
-    cross_combined_lenz[ii,:] = [c_combined_lenz[digitized == i].mean() for i in range(1, len(lbins))]
-    auto_in_combined_lenz[ii,:] = [a_in_combined_lenz[digitized == i].mean() for i in range(1, len(lbins))]
+    #a_combined_lenz, c_combined_lenz, a_in_combined_lenz = btmp_combined_lenz.get_masked_spec(idx)
+    #auto_combined_lenz[ii,:] = [a_combined_lenz[digitized == i].mean() for i in range(1, len(lbins))]
+    #cross_combined_lenz[ii,:] = [c_combined_lenz[digitized == i].mean() for i in range(1, len(lbins))]
+    #auto_in_combined_lenz[ii,:] = [a_in_combined_lenz[digitized == i].mean() for i in range(1, len(lbins))]
 auto_mean_standard = np.mean(auto_standard, axis=0)
 auto_var_standard = np.var(auto_standard, axis=0)
 cross_mean_standard = np.mean(cross_standard, axis=0)
@@ -82,12 +83,12 @@ cross_mean_combined = np.mean(cross_combined, axis=0)
 cross_var_combined = np.var(cross_combined, axis=0)
 auto_input_mean_combined = np.mean(auto_in_combined, axis=0)
 auto_input_var_combined = np.var(auto_in_combined, axis=0)
-auto_mean_combined_lenz = np.mean(auto_combined_lenz, axis=0)
-auto_var_combined_lenz = np.var(auto_combined_lenz, axis=0)
-cross_mean_combined_lenz = np.mean(cross_combined_lenz, axis=0)
-cross_var_combined_lenz = np.var(cross_combined_lenz, axis=0)
-auto_input_mean_combined_lenz = np.mean(auto_in_combined_lenz, axis=0)
-auto_input_var_combined_lenz = np.var(auto_in_combined_lenz, axis=0)
+#auto_mean_combined_lenz = np.mean(auto_combined_lenz, axis=0)
+#auto_var_combined_lenz = np.var(auto_combined_lenz, axis=0)
+#cross_mean_combined_lenz = np.mean(cross_combined_lenz, axis=0)
+#cross_var_combined_lenz = np.var(cross_combined_lenz, axis=0)
+#auto_input_mean_combined_lenz = np.mean(auto_in_combined_lenz, axis=0)
+#auto_input_var_combined_lenz = np.var(auto_in_combined_lenz, axis=0)
 
 # Plot
 plt.figure(0)
@@ -99,10 +100,10 @@ plt.errorbar(bin_centers, auto_mean_prfhrd, yerr=np.sqrt(auto_var_prfhrd), color
 plt.errorbar(bin_centers, cross_mean_prfhrd, yerr=np.sqrt(cross_var_prfhrd), color='cornflowerblue', linestyle='--', label="btemplate x input B cross, prfhrd")
 #plt.errorbar(bin_centers, auto_mean_pp, yerr=np.sqrt(auto_var_pp), color='pink', linestyle='--', label="btemplate auto, pol-only")
 #plt.errorbar(bin_centers, cross_mean_pp, yerr=np.sqrt(cross_var_pp), color='lightsteelblue', linestyle='--', label="btemplate x input B cross, pol-only")
-plt.errorbar(bin_centers, auto_mean_combined, yerr=np.sqrt(auto_var_combined), color='pink', linestyle='-', label="btemplate auto, combined tracer with BKSPT curves")
-plt.errorbar(bin_centers, cross_mean_combined, yerr=np.sqrt(cross_var_combined), color='lightsteelblue', linestyle='-', label="btemplate x input B cross, combined tracer with BKSPT curves")
-plt.errorbar(bin_centers, auto_mean_combined_lenz, yerr=np.sqrt(auto_var_combined_lenz), color='mediumorchid', linestyle='-', label="btemplate auto, combined tracer with Lenz et al. 2019 curves")
-plt.errorbar(bin_centers, cross_mean_combined_lenz, yerr=np.sqrt(cross_var_combined_lenz), color='slateblue', linestyle='-', label="btemplate x input B cross, combined tracer with Lenz et al. 2019 curves")
+plt.errorbar(bin_centers, auto_mean_combined, yerr=np.sqrt(auto_var_combined), color='pink', linestyle='-', label="btemplate auto, combined tracer with PR3 CIB map + PR4 kappa")
+plt.errorbar(bin_centers, cross_mean_combined, yerr=np.sqrt(cross_var_combined), color='lightsteelblue', linestyle='-', label="btemplate x input B cross, combined tracer with PR3 CIB map + PR4 kappa")
+#plt.errorbar(bin_centers, auto_mean_combined_lenz, yerr=np.sqrt(auto_var_combined_lenz), color='mediumorchid', linestyle='-', label="btemplate auto, combined tracer with Lenz et al. 2019 curves")
+#plt.errorbar(bin_centers, cross_mean_combined_lenz, yerr=np.sqrt(cross_var_combined_lenz), color='slateblue', linestyle='-', label="btemplate x input B cross, combined tracer with Lenz et al. 2019 curves")
 plt.legend(loc='lower left', fontsize='x-small')
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$C_\ell^{BB}$ [$\mu K^2$]")
@@ -113,6 +114,7 @@ plt.ylim(1e-7,3e-6)
 plt.show()
 plt.savefig('figs/btemplates_check_prfhrd.png',bbox_inches='tight')
 
+'''
 plt.clf()
 fig,(ax1,ax2) = plt.subplots(2,1)
 ax1.axhline(y=1, color='gray', alpha=0.5, linestyle='--')
@@ -166,6 +168,7 @@ plt.yscale('log')
 plt.xlim(10,2000)
 plt.show()
 plt.savefig('figs/btemplates_var_prfhrd.png',bbox_inches='tight')
+'''
 
 # Get correlation coefficient, averaged for 50 < ell < 200
 auto_standard = np.zeros((len(idxs)),dtype=np.complex_)
@@ -180,6 +183,9 @@ auto_in_pp = np.zeros((len(idxs)),dtype=np.complex_)
 auto_combined = np.zeros((len(idxs)),dtype=np.complex_)
 cross_combined = np.zeros((len(idxs)),dtype=np.complex_)
 auto_in_combined = np.zeros((len(idxs)),dtype=np.complex_)
+#auto_combined_lenz = np.zeros((len(idxs)),dtype=np.complex_)
+#cross_combined_lenz = np.zeros((len(idxs)),dtype=np.complex_)
+#auto_in_combined_lenz = np.zeros((len(idxs)),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
     a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx)
@@ -198,6 +204,10 @@ for ii, idx in enumerate(idxs):
     auto_combined[ii] = np.mean(a_combined[50:201])
     cross_combined[ii] = np.mean(c_combined[50:201])
     auto_in_combined[ii] = np.mean(a_in_combined[50:201])
+    #a_combined_lenz, c_combined_lenz, a_in_combined_lenz = btmp_combined_lenz.get_masked_spec(idx)
+    #auto_combined_lenz[ii] = np.mean(a_combined_lenz[50:201])
+    #cross_combined_lenz[ii] = np.mean(c_combined_lenz[50:201])
+    #auto_in_combined_lenz[ii] = np.mean(a_in_combined_lenz[50:201])
 auto_mean_standard = np.mean(auto_standard, axis=0)
 cross_mean_standard = np.mean(cross_standard, axis=0)
 auto_input_mean_standard = np.mean(auto_in_standard, axis=0)
@@ -210,12 +220,23 @@ auto_input_mean_pp = np.mean(auto_in_pp, axis=0)
 auto_mean_combined = np.mean(auto_combined, axis=0)
 cross_mean_combined = np.mean(cross_combined, axis=0)
 auto_input_mean_combined = np.mean(auto_in_combined, axis=0)
+#auto_mean_combined_lenz = np.mean(auto_combined_lenz, axis=0)
+#cross_mean_combined_lenz = np.mean(cross_combined_lenz, axis=0)
+#auto_input_mean_combined_lenz = np.mean(auto_in_combined_lenz, axis=0)
 r_std = cross_mean_standard / np.sqrt(auto_mean_standard * auto_input_mean_standard)
 r_prfhrd = cross_mean_prfhrd / np.sqrt(auto_mean_prfhrd * auto_input_mean_prfhrd)
 r_pp = cross_mean_pp / np.sqrt(auto_mean_pp * auto_input_mean_pp)
 r_combined = cross_mean_combined / np.sqrt(auto_mean_combined * auto_input_mean_combined)
+#r_combined_lenz = cross_mean_combined_lenz / np.sqrt(auto_mean_combined_lenz * auto_input_mean_combined_lenz)
 print("Correlation coefficient, standard:", r_std)
 print("Correlation coefficient, profile hardened:", r_prfhrd)
 print("Correlation coefficient, pol-only:", r_pp)
 print("Correlation coefficient, combined tracer:", r_combined)
+#print("Correlation coefficient, combined Lenz tracer:", r_combined_lenz)
+print("")
+print("Residual A_lens (1-rho^2), standard:", 1-r_std**2)
+print("Residual A_lens (1-rho^2), profile hardened:", 1-r_prfhrd**2)
+print("Residual A_lens (1-rho^2), pol-only:", 1-r_pp**2)
+print("Residual A_lens (1-rho^2), combined tracer:", 1-r_combined**2)
+#print("Residual A_lens (1-rho^2), combined Lenz tracer:", 1-r_combined_lenz**2)
 
