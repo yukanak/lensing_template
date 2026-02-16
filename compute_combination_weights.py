@@ -35,11 +35,14 @@ def parse_path(yaml):
 
 # NOTE: change below
 lmax = 2000
-savedir = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/combined_qe_pr3_cib_pr4_kappa_tracer/'
-cliis = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clii_545ghz_patch{i}.dat")[:lmax+1,1] * (1e6/58.04)**2 for i in [0,1,2,3,5,6,7,8]])
-clii = np.nanmean(cliis, axis=0)
-cliks = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clik_545ghz_pr4kappa_patch{i}.dat")[:lmax+1,1] * (1e6/58.04) for i in [0,1,2,3,5,6,7,8]])
-clik = np.nanmean(cliks, axis=0)
+#savedir = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/combined_qe_pr3_cib_pr4_kappa_tracer/'
+#cliis = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clii_545ghz_patch{i}.dat")[:lmax+1,1] * (1e6/58.04)**2 for i in [0,1,2,3,5,6,7,8]])
+#clii = np.nanmean(cliis, axis=0)
+#cliks = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clik_545ghz_pr4kappa_patch{i}.dat")[:lmax+1,1] * (1e6/58.04) for i in [0,1,2,3,5,6,7,8]])
+#clik = np.nanmean(cliks, axis=0)
+savedir = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/combined_qe_agora545_cib_tracer/'
+clii = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/agora545/cls/cls_clii_545ghz_fullsky.dat") * (1/58.04)**2
+clik = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/agora545/cls/cls_clik_545ghz_inputkappa_fullsky.dat") * (1/58.04)
 n0_std = utils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_mh.yaml'),498,'gmv','N0',N0=None,Lmin=24,Lmax=2500,use_cache=True,verbose=False)
 n0_prfhrd = utils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_prfhrd.yaml'),498,'gmvbhttprf','N0',N0=None,Lmin=24,Lmax=2500,use_cache=True,verbose=False)
 n0_pp = utils.loadcls(parse_path('/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yaml/gmv/config_gmv_052425_crosstf_lmin500_500_500_lmax3500_3000_3000_mmin100_v4_sqe.yaml'),498,'qpp','N0',N0=None,Lmin=24,Lmax=2500,use_cache=True,verbose=False)
@@ -95,7 +98,36 @@ save1 = w1*kk_over_ii1
 save2 = w2*kk_over_ii2
 #np.save(savedir+f'/klm1_weight', save1)
 #np.save(savedir+f'/klm2_weight', save2)
+#np.save(savedir+f'/klm1_weight_rhos', w1)
+#np.save(savedir+f'/klm2_weight_rhos', w2)
+#np.save(savedir+f'/klm1_weight_sqrt_kk_over_ii', kk_over_ii1)
+#np.save(savedir+f'/klm2_weight_sqrt_kk_over_ii', kk_over_ii2)
 
+# FOR DEBUG
+clii_alt = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clii_545ghz_patch{i}.dat")[:lmax+1,1] * (1e6/58.04)**2 for i in [0,1,2,3,5,6,7,8]])
+clii_alt = np.nanmean(clii_alt, axis=0)
+clik_alt = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clik_545ghz_pr4kappa_patch{i}.dat")[:lmax+1,1] * (1e6/58.04) for i in [0,1,2,3,5,6,7,8]])
+clik_alt = np.nanmean(clik_alt, axis=0)
+clii_alt = bin_interp_spectra(clii_alt, li)
+clik_alt = bin_interp_spectra(clik_alt, li)
+plt.clf()
+plt.plot(l[2:],auto1,color='firebrick',label='auto1')
+plt.plot(l[2:],auto2,color='darkblue',label='auto2')
+plt.plot(l[2:],cross12,color='forestgreen',label='cross12 = cross2k')
+plt.plot(l[2:],cross1k,color='darkorchid',label='cross1k = autok')
+plt.plot(l[2:],clii_alt,color='cornflowerblue',linestyle='--',label='auto2, GNILC CIB + PR4 kappa')
+plt.plot(l[2:],clik_alt,color='mediumturquoise',linestyle='--',label='cross12 = cross2k, GNILC CIB + PR4 kappa')
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.xlabel('$\ell$')
+plt.legend(loc='upper right', fontsize='small')
+plt.xscale('log')
+plt.yscale('log')
+plt.xlim(10,2000)
+plt.ylim(1e-19,1e9)
+plt.tight_layout()
+plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
+
+'''
 # CHECK
 save1_sim1 = np.load(savedir+'/klm1_weight_sim1.npy')
 save2_sim1 = np.load(savedir+'/klm2_weight_sim1.npy')
@@ -132,6 +164,7 @@ plt.yscale('log')
 plt.xlim(10,2000)
 plt.tight_layout()
 plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
+'''
 '''
 #=============================================================================#
 # Once below is run for 499 sims, comment out everything below and comment in:

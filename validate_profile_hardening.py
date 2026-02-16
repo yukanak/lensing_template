@@ -19,14 +19,19 @@ yaml_file_pp = 'bt_gmv3500_pp.yaml'
 btmp_pp = bt.btemplate(yaml_file_pp)
 yaml_file_standard_agoraGfgs = 'bt_gmv3500_agoraGfgs.yaml'
 btmp_standard_agoraGfgs = bt.btemplate(yaml_file_standard_agoraGfgs)
-yaml_file_standard_agoraGfgs_lmax1000 = 'bt_gmv3500_agoraGfgs_lmax1000.yaml'
-btmp_standard_agoraGfgs_lmax1000 = bt.btemplate(yaml_file_standard_agoraGfgs_lmax1000)
+#TODO
+yaml_file_standard_gaussianlcmbonly = 'bt_gmv3500_temp.yaml'
+#yaml_file_standard_gaussianlcmbonly = 'bt_gmv3500_gaussianlcmbonly.yaml'
+btmp_standard_gaussianlcmbonly = bt.btemplate(yaml_file_standard_gaussianlcmbonly)
+yaml_file_standard_agoralcmbonly = 'bt_gmv3500_agoralcmbonly.yaml'
+btmp_standard_agoralcmbonly = bt.btemplate(yaml_file_standard_agoralcmbonly)
 nside = btmp.nside
 mask = hp.read_map(btmp.maskfname)
 fsky = np.sum(mask**2)/mask.size
 lbins = np.logspace(np.log10(30),np.log10(1000),20)
 bin_centers = (lbins[:-1] + lbins[1:]) / 2
 digitized = np.digitize(np.arange(6144), lbins)
+ell,sltt,slee,slbb,slte = utils.get_lensedcls('/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lensedCls.dat',lmax=1000)
 
 #=============================================================================#
 
@@ -34,15 +39,13 @@ idxs = np.arange(10) + 5001
 auto_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
-auto_standard_agoraGfgs_lmax1000 = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
-cross_standard_agoraGfgs_lmax1000 = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
-auto_in_standard_agoraGfgs_lmax1000 = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
-    a_standard_agoraGfgs, c_standard_agoraGfgs, a_in_standard_agoraGfgs = btmp_standard_agoraGfgs.get_masked_spec(idx)
+    a_standard_agoraGfgs, c_standard_agoraGfgs, a_in_standard_agoraGfgs = btmp_standard_agoraGfgs.get_masked_spec(idx,recompute=False,savefile=False)
+    #a_standard_agoraGfgs, c_standard_agoraGfgs, a_in_standard_agoraGfgs = btmp_standard_agoraGfgs.get_masked_spec(idx,recompute=False)
     auto_standard_agoraGfgs[ii,:] = [a_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
     cross_standard_agoraGfgs[ii,:] = [c_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_standard_agoraGfgs[ii,:] = [a_in_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
@@ -50,10 +53,6 @@ for ii, idx in enumerate(idxs):
     #auto_prfhrd_agoraGfgs[ii,:] = [a_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
     #cross_prfhrd_agoraGfgs[ii,:] = [c_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
     #auto_in_prfhrd_agoraGfgs[ii,:] = [a_in_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
-    a_standard_agoraGfgs_lmax1000, c_standard_agoraGfgs_lmax1000, a_in_standard_agoraGfgs_lmax1000 = btmp_standard_agoraGfgs_lmax1000.get_masked_spec(idx)
-    auto_standard_agoraGfgs_lmax1000[ii,:] = [a_standard_agoraGfgs_lmax1000[digitized == i].mean() for i in range(1, len(lbins))]
-    cross_standard_agoraGfgs_lmax1000[ii,:] = [c_standard_agoraGfgs_lmax1000[digitized == i].mean() for i in range(1, len(lbins))]
-    auto_in_standard_agoraGfgs_lmax1000[ii,:] = [a_in_standard_agoraGfgs_lmax1000[digitized == i].mean() for i in range(1, len(lbins))]
 auto_mean_standard_agoraGfgs = np.mean(auto_standard_agoraGfgs, axis=0)
 auto_var_standard_agoraGfgs = np.var(auto_standard_agoraGfgs, axis=0)
 cross_mean_standard_agoraGfgs = np.mean(cross_standard_agoraGfgs, axis=0)
@@ -66,12 +65,6 @@ cross_mean_prfhrd_agoraGfgs = np.mean(cross_prfhrd_agoraGfgs, axis=0)
 cross_var_prfhrd_agoraGfgs = np.var(cross_prfhrd_agoraGfgs, axis=0)
 auto_input_mean_prfhrd_agoraGfgs = np.mean(auto_in_prfhrd_agoraGfgs, axis=0)
 auto_input_var_prfhrd_agoraGfgs = np.var(auto_in_prfhrd_agoraGfgs, axis=0)
-auto_mean_standard_agoraGfgs_lmax1000 = np.mean(auto_standard_agoraGfgs_lmax1000, axis=0)
-auto_var_standard_agoraGfgs_lmax1000 = np.var(auto_standard_agoraGfgs_lmax1000, axis=0)
-cross_mean_standard_agoraGfgs_lmax1000 = np.mean(cross_standard_agoraGfgs_lmax1000, axis=0)
-cross_var_standard_agoraGfgs_lmax1000 = np.var(cross_standard_agoraGfgs_lmax1000, axis=0)
-auto_input_mean_standard_agoraGfgs_lmax1000 = np.mean(auto_in_standard_agoraGfgs_lmax1000, axis=0)
-auto_input_var_standard_agoraGfgs_lmax1000 = np.var(auto_in_standard_agoraGfgs_lmax1000, axis=0)
 
 #=============================================================================#
 
@@ -87,7 +80,8 @@ cross_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
-    a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx)
+    #a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx,recompute=True,savefile=False)
+    a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx,recompute=False)
     auto_standard[ii,:] = [a_standard[digitized == i].mean() for i in range(1, len(lbins))]
     cross_standard[ii,:] = [c_standard[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_standard[ii,:] = [a_in_standard[digitized == i].mean() for i in range(1, len(lbins))]
@@ -118,6 +112,30 @@ cross_var_pp = np.var(cross_pp, axis=0)
 auto_input_mean_pp = np.mean(auto_in_pp, axis=0)
 auto_input_var_pp = np.var(auto_in_pp, axis=0)
 
+#=============================================================================#
+
+# LCMB ONLY
+idxs = np.arange(10)+1
+auto_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_LCMBONLY_vs_normal = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+for ii, idx in enumerate(idxs):
+    print(idx)
+    a_standard, c_standard, a_in_standard = btmp_standard_gaussianlcmbonly.get_masked_spec(idx,recompute=False,savefile=False)
+    auto_standard[ii,:] = [a_standard[digitized == i].mean() for i in range(1, len(lbins))]
+    cross_standard[ii,:] = [c_standard[digitized == i].mean() for i in range(1, len(lbins))]
+    # try crossing with normal G sim
+    btpl_lm  = btmp_standard_gaussianlcmbonly.get_btpl_alm(idx,recompute=False,savefile=False)
+    btpl_map = hp.alm2map(btpl_lm, nside, lmax=2000)
+    btpl_lm_normal  = btmp_standard.get_btpl_alm(idx,recompute=False,savefile=False)
+    btpl_map_normal = hp.alm2map(btpl_lm_normal, nside, lmax=2000)
+    c = hp.anafast(btpl_map * mask, btpl_map_normal * mask) / fsky
+    cross_LCMBONLY_vs_normal[ii,:] = [c[digitized == i].mean() for i in range(1, len(lbins))]
+auto_mean_standard_gaussian_LCMBONLY = np.mean(auto_standard, axis=0)
+auto_var_standard_gaussian_LCMBONLY = np.var(auto_standard, axis=0)
+cross_mean_standard_gaussian_LCMBONLY = np.mean(cross_standard, axis=0)
+cross_var_standard_gaussian_LCMBONLY = np.var(cross_standard, axis=0)
+cross_mean_LCMBONLY_vs_normal = np.mean(cross_LCMBONLY_vs_normal, axis=0)
 #=============================================================================#
 
 # Gaussian sims now for comparison
@@ -164,39 +182,56 @@ cross_var_pp_gaussian = np.var(cross_pp, axis=0)
 auto_input_mean_pp_gaussian = np.mean(auto_in_pp, axis=0)
 auto_input_var_pp_gaussian = np.var(auto_in_pp, axis=0)
 
+## TO INVESTIGATE SAMPLE VARIANCE, take sets of 10 of the Gaussian set
+#Nsims, Nbins = len(idxs),len(lbins)-1
+#group_size = 10
+#Ngroups = 49 #Nsims // group_size
+#Nuse = Ngroups * group_size
+## randomize so groups aren't "seed 1-10, 11-20, ..."
+#rng = np.random.default_rng(0)
+#perm = rng.permutation(Nsims)[:Nuse]
+#auto_use = auto_standard[perm] # (Nuse, Nbins)
+#cross_use = cross_standard[perm] # (Nuse, Nbins)
+## reshape into groups and take group means
+#auto_groups = auto_use.reshape(Ngroups, group_size, Nbins)
+#auto_mean10 = auto_groups.mean(axis=1) # (Ngroups, Nbins)
+#cross_groups = cross_use.reshape(Ngroups, group_size, Nbins)
+#cross_mean10 = cross_groups.mean(axis=1) # (Ngroups, Nbins)
+## scatter of 10-sim means (this is the "error bar on a 10-sim mean")
+#auto_sigma10 = auto_mean10.std(axis=0)
+#cross_sigma10 = cross_mean10.std(axis=0)
+
 #=============================================================================#
 
 # Get rho
-rho_gaussian_std = cross_mean_standard_gaussian / np.sqrt(auto_mean_standard_gaussian * auto_input_mean_standard_gaussian) 
-rho_gaussian_prfhrd = cross_mean_prfhrd_gaussian / np.sqrt(auto_mean_prfhrd_gaussian * auto_input_mean_prfhrd_gaussian) 
-rho_gaussian_pp = cross_mean_pp_gaussian / np.sqrt(auto_mean_pp_gaussian * auto_input_mean_pp_gaussian) 
-rho_agora_std = cross_mean_standard / np.sqrt(auto_mean_standard * auto_input_mean_standard) 
-rho_agora_prfhrd = cross_mean_prfhrd / np.sqrt(auto_mean_prfhrd * auto_input_mean_prfhrd) 
-rho_agora_pp = cross_mean_pp / np.sqrt(auto_mean_pp * auto_input_mean_pp) 
-rho_agora_std_agoraGfgs  = cross_mean_standard_agoraGfgs  / np.sqrt(auto_mean_standard_agoraGfgs  * auto_input_mean_standard_agoraGfgs ) 
-#rho_agora_prfhrd_agoraGfgs  = cross_mean_prfhrd_agoraGfgs  / np.sqrt(auto_mean_prfhrd_agoraGfgs  * auto_input_mean_prfhrd_agoraGfgs ) 
+rho_gaussian_std = cross_mean_standard_gaussian / np.sqrt(auto_mean_standard_gaussian * auto_input_mean_standard_gaussian)
+rho_gaussian_prfhrd = cross_mean_prfhrd_gaussian / np.sqrt(auto_mean_prfhrd_gaussian * auto_input_mean_prfhrd_gaussian)
+rho_gaussian_pp = cross_mean_pp_gaussian / np.sqrt(auto_mean_pp_gaussian * auto_input_mean_pp_gaussian)
+rho_agora_std = cross_mean_standard / np.sqrt(auto_mean_standard * auto_input_mean_standard)
+rho_agora_prfhrd = cross_mean_prfhrd / np.sqrt(auto_mean_prfhrd * auto_input_mean_prfhrd)
+rho_agora_pp = cross_mean_pp / np.sqrt(auto_mean_pp * auto_input_mean_pp)
+rho_agora_std_agoraGfgs  = cross_mean_standard_agoraGfgs  / np.sqrt(auto_mean_standard_agoraGfgs  * auto_input_mean_standard_agoraGfgs )
+#rho_agora_prfhrd_agoraGfgs  = cross_mean_prfhrd_agoraGfgs  / np.sqrt(auto_mean_prfhrd_agoraGfgs  * auto_input_mean_prfhrd_agoraGfgs )
 
 #=============================================================================#
 
-ell,sltt,slee,slbb,slte = utils.get_lensedcls('/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lensedCls.dat',lmax=1000)
-
-plt.figure(0)
-plt.clf()
-plt.plot(bin_centers, rho_gaussian_std, color='firebrick', alpha=1, label='rho Gaussian standard')
-plt.plot(bin_centers, rho_gaussian_prfhrd, color='forestgreen', alpha=1, linestyle='-', label='rho Gaussian prfhrd')
-plt.plot(bin_centers, rho_gaussian_pp, color='darkblue', alpha=1, linestyle='-', label='rho Gaussian pol-only')
-plt.plot(bin_centers, rho_agora_std, color='salmon', alpha=1, linestyle='--', label='rho Agora standard')
-plt.plot(bin_centers, rho_agora_prfhrd, color='lightgreen', alpha=1, linestyle='--', label='rho Agora prfhrd')
-plt.plot(bin_centers, rho_agora_pp, color='cornflowerblue', alpha=1, linestyle='--', label='rho Agora pol-only')
-plt.grid(True, linestyle="--", alpha=0.5)                                       
-plt.legend(loc='upper right', fontsize='small')                                 
-plt.xscale('log')                                                               
-plt.xlim(10,1500)                                                               
-plt.tight_layout()                                                              
-plt.ylim(0.4,0.8)
-plt.xlabel(r"$\ell$")
-plt.ylabel(r"$\rho$")
-plt.savefig('figs/btemplates_check_prfhrd_agora.png',bbox_inches='tight')
+#plt.figure(0)
+#plt.clf()
+#plt.plot(bin_centers, rho_gaussian_std, color='firebrick', alpha=1, label='rho Gaussian standard')
+#plt.plot(bin_centers, rho_gaussian_prfhrd, color='forestgreen', alpha=1, linestyle='-', label='rho Gaussian prfhrd')
+#plt.plot(bin_centers, rho_gaussian_pp, color='darkblue', alpha=1, linestyle='-', label='rho Gaussian pol-only')
+#plt.plot(bin_centers, rho_agora_std, color='salmon', alpha=1, linestyle='--', label='rho Agora standard')
+#plt.plot(bin_centers, rho_agora_prfhrd, color='lightgreen', alpha=1, linestyle='--', label='rho Agora prfhrd')
+#plt.plot(bin_centers, rho_agora_pp, color='cornflowerblue', alpha=1, linestyle='--', label='rho Agora pol-only')
+#plt.grid(True, linestyle="--", alpha=0.5)
+#plt.legend(loc='upper right', fontsize='small')
+#plt.xscale('log')
+#plt.xlim(10,1500)
+#plt.tight_layout()
+#plt.ylim(0.4,0.8)
+#plt.xlabel(r"$\ell$")
+#plt.ylabel(r"$\rho$")
+#plt.savefig('figs/btemplates_check_prfhrd_agora.png',bbox_inches='tight')
 
 plt.figure(0)
 plt.clf()
@@ -204,27 +239,36 @@ plt.plot(ell, slbb, color='gray', linestyle=':', label="CAMB theory slbb")
 #plt.plot(bin_centers, clbb_fullsky, color='orange', linestyle='-', label="input B auto, full-sky Agora 5001 (unrotated, beam applied)")
 #plt.plot(bin_centers, clbb_fullsky, color='orange', linestyle='-', label="input B auto, full-sky Agora 5001 (unrotated, beam NOT applied)")
 
-#plt.errorbar(bin_centers, auto_mean_standard_gaussian, yerr=np.sqrt(auto_var_standard_gaussian), color='firebrick', linestyle='-', label="btemplate auto, standard, Gaussian sims")
-#plt.errorbar(bin_centers, auto_mean_prfhrd_gaussian, yerr=np.sqrt(auto_var_prfhrd_gaussian), color='forestgreen', linestyle='-', label="btemplate auto, prfhrd, Gaussian sims")
-#plt.errorbar(bin_centers, auto_mean_pp_gaussian, yerr=np.sqrt(auto_var_pp_gaussian), color='darkblue', linestyle='-', label="btemplate auto, pol-only, Gaussian sims")
-plt.errorbar(bin_centers, cross_mean_standard_gaussian, yerr=np.sqrt(cross_var_standard_gaussian), color='firebrick', linestyle='-', label="btemplate x input B cross, standard, Gaussian sims")
-plt.errorbar(bin_centers, cross_mean_prfhrd_gaussian, yerr=np.sqrt(cross_var_prfhrd_gaussian), color='forestgreen', linestyle='-', label="btemplate x input B cross, prfhrd, Gaussian sims")
-plt.errorbar(bin_centers, cross_mean_pp_gaussian, yerr=np.sqrt(cross_var_pp_gaussian), color='darkblue', linestyle='-', label="btemplate x input B cross, pol-only, Gaussian sims")
+plt.errorbar(bin_centers, auto_mean_standard_gaussian, yerr=np.sqrt(auto_var_standard_gaussian), color='firebrick', linestyle='-', label="btemplate auto, standard, Gaussian sims")
+plt.errorbar(bin_centers, auto_mean_prfhrd_gaussian, yerr=np.sqrt(auto_var_prfhrd_gaussian), color='forestgreen', linestyle='-', label="btemplate auto, prfhrd, Gaussian sims")
+plt.errorbar(bin_centers, auto_mean_pp_gaussian, yerr=np.sqrt(auto_var_pp_gaussian), color='darkblue', linestyle='-', label="btemplate auto, pol-only, Gaussian sims")
+#plt.errorbar(bin_centers, cross_mean_standard_gaussian, yerr=np.sqrt(cross_var_standard_gaussian), color='firebrick', linestyle='-', label="btemplate x input B cross, standard, Gaussian sims")
+#plt.errorbar(bin_centers, cross_mean_prfhrd_gaussian, yerr=np.sqrt(cross_var_prfhrd_gaussian), color='forestgreen', linestyle='-', label="btemplate x input B cross, prfhrd, Gaussian sims")
+#plt.errorbar(bin_centers, cross_mean_pp_gaussian, yerr=np.sqrt(cross_var_pp_gaussian), color='darkblue', linestyle='-', label="btemplate x input B cross, pol-only, Gaussian sims")
+#for i in range(49):
+#    if i == 0:
+#        plt.errorbar(bin_centers, cross_mean10[i,:], yerr=cross_sigma10, color='lightgray', alpha=0.3, linestyle='-',label='btemplate x input B cross, standard, 10 Gaussian sims')
+#    else:
+#        plt.errorbar(bin_centers, cross_mean10[i,:], yerr=cross_sigma10, color='lightgray', alpha=0.3, linestyle='-')
+## error band = expected scatter of a 10-sim mean
+#plt.fill_between(bin_centers,cross_mean_standard_gaussian-cross_sigma10,cross_mean_standard_gaussian+cross_sigma10,color='firebrick',alpha=0.3,label=r'$\pm 1\sigma$ (10-sim mean)')
 
 #plt.errorbar(bin_centers, auto_input_mean_standard_gaussian, yerr=np.sqrt(auto_input_var_standard_gaussian), color='olive', linestyle='-', label="input B auto, Gaussian sims")
 #plt.errorbar(bin_centers, auto_input_mean_standard, yerr=np.sqrt(auto_input_var_standard), color='forestgreen', linestyle='-', label="input B auto, Agora sims")
 
-#plt.errorbar(bin_centers, auto_mean_standard, yerr=np.sqrt(auto_var_standard), color='salmon', linestyle='--', label="btemplate auto, standard, Agora sims")
-#plt.errorbar(bin_centers, auto_mean_prfhrd, yerr=np.sqrt(auto_var_prfhrd), color='lightgreen', linestyle='--', label="btemplate auto, prfhrd, Agora sims")
-#plt.errorbar(bin_centers, auto_mean_pp, yerr=np.sqrt(auto_var_pp), color='cornflowerblue', linestyle='--', label="btemplate auto, pol-only, Agora sims")
-#plt.errorbar(bin_centers, auto_mean_standard_agoraGfgs, yerr=np.sqrt(auto_var_standard_agoraGfgs), color='mediumpurple', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims")
-#plt.errorbar(bin_centers, auto_mean_standard_agoraGfgs_lmax1000, yerr=np.sqrt(auto_var_standard_agoraGfgs_lmax1000), color='plum', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims, lmax=1000")
-plt.errorbar(bin_centers, cross_mean_prfhrd_agoraGfgs , yerr=np.sqrt(cross_var_prfhrd_agoraGfgs), color='mediumseagreen', linestyle='--', label="btemplate x input B cross, prfhrd, Agora WITH G FG sims")
-plt.errorbar(bin_centers, cross_mean_standard, yerr=np.sqrt(cross_var_standard), color='salmon', linestyle='--', label="btemplate x input B cross, standard, Agora sims")
-plt.errorbar(bin_centers, cross_mean_prfhrd, yerr=np.sqrt(cross_var_prfhrd), color='lightgreen', linestyle='--', label="btemplate x input B cross, prfhrd, Agora sims")
-plt.errorbar(bin_centers, cross_mean_pp, yerr=np.sqrt(cross_var_pp), color='cornflowerblue', linestyle='--', label="btemplate x input B cross, pol-only, Agora sims")
-plt.errorbar(bin_centers, cross_mean_standard_agoraGfgs, yerr=np.sqrt(cross_var_standard_agoraGfgs), color='mediumpurple', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims")
-plt.errorbar(bin_centers, cross_mean_standard_agoraGfgs_lmax1000, yerr=np.sqrt(cross_var_standard_agoraGfgs_lmax1000), color='plum', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims, lmax=1000")
+plt.errorbar(bin_centers, auto_mean_standard, yerr=np.sqrt(auto_var_standard), color='salmon', linestyle='--', label="btemplate auto, standard, Agora sims")
+plt.errorbar(bin_centers, auto_mean_prfhrd, yerr=np.sqrt(auto_var_prfhrd), color='lightgreen', linestyle='--', label="btemplate auto, prfhrd, Agora sims")
+plt.errorbar(bin_centers, auto_mean_pp, yerr=np.sqrt(auto_var_pp), color='cornflowerblue', linestyle='--', label="btemplate auto, pol-only, Agora sims")
+plt.errorbar(bin_centers, auto_mean_standard_agoraGfgs, yerr=np.sqrt(auto_var_standard_agoraGfgs), color='mediumpurple', linestyle='--', label="btemplate auto, standard, Agora WITH G FG sims")
+#plt.errorbar(bin_centers, auto_mean_standard_agoraGfgs_lmax1000, yerr=np.sqrt(auto_var_standard_agoraGfgs_lmax1000), color='plum', linestyle='--', label="btemplate auto, standard, Agora WITH G FG sims, lmax=1000")
+plt.errorbar(bin_centers, auto_mean_standard_gaussian_LCMBONLY, yerr=np.sqrt(auto_var_standard_gaussian_LCMBONLY), color='orange', linestyle='-', label="btemplate auto, standard, Gaussian LCMB ONLY")
+plt.plot(bin_centers, cross_mean_LCMBONLY_vs_normal, color='goldenrod', linestyle='-', label="btemplate cross, standard, Gaussian LCMB ONLY x normal")
+#plt.errorbar(bin_centers, cross_mean_standard, yerr=np.sqrt(cross_var_standard), color='salmon', linestyle='--', label="btemplate x input B cross, standard, Agora sims")
+#plt.errorbar(bin_centers, cross_mean_prfhrd, yerr=np.sqrt(cross_var_prfhrd), color='lightgreen', linestyle='--', label="btemplate x input B cross, prfhrd, Agora sims")
+#plt.errorbar(bin_centers, cross_mean_pp, yerr=np.sqrt(cross_var_pp), color='cornflowerblue', linestyle='--', label="btemplate x input B cross, pol-only, Agora sims")
+#plt.errorbar(bin_centers, cross_mean_standard_agoraGfgs, yerr=np.sqrt(cross_var_standard_agoraGfgs), color='mediumpurple', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims")
+#plt.errorbar(bin_centers, cross_mean_standard_agoraGfgs_lmax1000, yerr=np.sqrt(cross_var_standard_agoraGfgs_lmax1000), color='plum', linestyle='--', label="btemplate x input B cross, standard, Agora WITH G FG sims, lmax=1000")
+plt.errorbar(bin_centers, cross_mean_standard_gaussian_LCMBONLY, yerr=np.sqrt(cross_var_standard_gaussian_LCMBONLY), color='peru', linestyle='-', label="btemplate x input B cross, standard, Gaussian LCMB ONLY")
 #plt.legend(loc='upper left', fontsize='x-small', bbox_to_anchor=(1,0.5))
 plt.legend(loc='lower left', fontsize='x-small')
 plt.xlabel(r"$\ell$")
@@ -234,7 +278,6 @@ plt.yscale('log')
 plt.xlim(10,2000)
 #plt.ylim(1e-7,3e-6)
 plt.ylim(3e-7,1.2e-6)
-plt.show()
 plt.savefig('figs/btemplates_check_prfhrd_agora.png',bbox_inches='tight')
 
 #=============================================================================#

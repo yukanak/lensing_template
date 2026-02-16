@@ -90,6 +90,17 @@ auto_input_var_combined = np.var(auto_in_combined, axis=0)
 #auto_input_mean_combined_lenz = np.mean(auto_in_combined_lenz, axis=0)
 #auto_input_var_combined_lenz = np.var(auto_in_combined_lenz, axis=0)
 
+# DATA
+didx = 0
+a_standard, _, _ = btmp_standard.get_masked_spec(didx)
+auto_standard = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))])
+a_prfhrd, _, _ = btmp_prfhrd.get_masked_spec(didx)
+auto_prfhrd = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+a_pp, _, _ = btmp_pp.get_masked_spec(didx)
+auto_pp = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+a_combined, _, _ = btmp_combined.get_masked_spec(didx)
+auto_combined = np.array([a_combined[digitized == i].mean() for i in range(1, len(lbins))])
+
 # Plot
 plt.figure(0)
 plt.clf()
@@ -104,6 +115,7 @@ plt.errorbar(bin_centers, auto_mean_combined, yerr=np.sqrt(auto_var_combined), c
 plt.errorbar(bin_centers, cross_mean_combined, yerr=np.sqrt(cross_var_combined), color='lightsteelblue', linestyle='-', label="btemplate x input B cross, combined tracer with PR3 CIB map + PR4 kappa")
 #plt.errorbar(bin_centers, auto_mean_combined_lenz, yerr=np.sqrt(auto_var_combined_lenz), color='mediumorchid', linestyle='-', label="btemplate auto, combined tracer with Lenz et al. 2019 curves")
 #plt.errorbar(bin_centers, cross_mean_combined_lenz, yerr=np.sqrt(cross_var_combined_lenz), color='slateblue', linestyle='-', label="btemplate x input B cross, combined tracer with Lenz et al. 2019 curves")
+plt.errorbar(bin_centers, auto_combined, yerr=np.sqrt(auto_var_combined), color='mediumorchid', linestyle='-', label="btemplate auto, combined tracer with PR3 CIB map + PR4 kappa, DATA")
 plt.legend(loc='lower left', fontsize='x-small')
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$C_\ell^{BB}$ [$\mu K^2$]")

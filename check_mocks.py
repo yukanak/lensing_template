@@ -7,6 +7,8 @@ from scipy.signal import savgol_filter
 import btemplate as bt
 sys.path.append('/home/users/yukanaka/healqest/healqest/src/')
 import healqest_utils as utils
+sys.path.append('/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch_gaussian_fgs/yuuki_scripts/')
+import utils as yuuki_utils
 
 # check mocks, reconstructed clkk
 l = np.arange(0,4096+1)
@@ -16,6 +18,11 @@ slpp = np.insert(slpp, 0, 0)
 slpp = np.insert(slpp, 0, 0)
 clkk = slpp[:4097] * (l*(l+1))**2/4
 lmax = 4096
+bins = np.logspace(np.log10(30), np.log10(4000), 51)
+digitized = np.digitize(np.arange(4001), bins)
+bin_centers = (bins[:-1] + bins[1:]) / 2
+
+'''
 # Gaussian
 gaussian = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/clkk_polspice_mfxxonly_mfsplit_nops/cls_kgmv_nsims1_498_nsims2_248_mcresp_mfxxonly_mfsplit_with_subinput_debias.npz',allow_pickle=True)
 gaussian_ratio = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/clkk_polspice_mfxxonly_mfsplit_nops/ratio_cls_kgmv_nsims1_498_nsims2_248_mcresp_mfxxonly_mfsplit_with_subinput_debias.npz',allow_pickle=True)
@@ -92,13 +99,101 @@ plt.xlim(10,lmax)
 plt.tight_layout()
 plt.savefig(f'/home/users/yukanaka/lensing_template/figs/temp.png',bbox_inches='tight')
 
+'''
 #=============================================================================#
-# check mocks, raw
+# check mocks, plms
+yaml_file = 'bt_gmv3500.yaml'
+yaml_file_temp = 'bt_gmv3500_temp.yaml'
+yaml_file_standard_gaussianlcmbonly = 'bt_gmv3500_gaussianlcmbonly.yaml'
+btmp = bt.btemplate(yaml_file)
+btmp_temp = bt.btemplate(yaml_file_temp)
+btmp_standard_gaussianlcmbonly = bt.btemplate(yaml_file_standard_gaussianlcmbonly)
+mask = hp.read_map(btmp.maskfname)
+fsky = np.sum(mask**2)/mask.size
+nside = btmp.nside
+klm_yuuki = btmp.get_debiased_klm(1)
+klm_temp = btmp_temp.get_debiased_klm(1)
+klm_nonfg = btmp_standard_gaussianlcmbonly.get_debiased_klm(1)
+kmap_yuuki = hp.alm2map(klm_yuuki, nside)
+kmap_temp = hp.alm2map(klm_temp, nside)
+kmap_nonfg = hp.alm2map(klm_nonfg, nside)
+cross = hp.anafast(kmap_yuuki * mask, kmap_nonfg * mask)/fsky
+auto_yuuki = hp.anafast(kmap_yuuki * mask) / fsky
+auto_temp = hp.anafast(kmap_temp * mask) / fsky
+auto_nonfg = hp.anafast(kmap_nonfg * mask) / fsky
+#plm_yuuki = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/GMVTTEETE/plmGMVTTEETE_1a_1a.npz')['glm']
+#plm_nonfg = np.load('/oak/stanford/orgs/kipac/users/yukanaka/gaussian_input_skies_spt3g_patch/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/GMVTTEETE/plmGMVTTEETE_1a_1a.npz')['glm']
+#cross = hp.alm2cl(plm_yuuki,plm_nonfg,lmax=3500) * (l[:3501]*(l[:3501]+1))**2/4
+print(np.mean(cross[100:301]/auto_yuuki[100:301]))
 
-seed = 5001
-mock_new = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/ilc/cmb/data/data_tqu1_agora0.7_datamatched_mcmccal_0707231033_Coadd_allfields_cmbmv_seed{seed:04}_withsignflipnoise_2dilc_crosstf_full_052425_notf_agoraGfgs.npz'
-seed_G = 1
-mock_G = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/xilc_inputs_precinv/data_tqu1_agora0.7_datamatched_mcmccal_0707231033_Coadd_allfields_cmbmv_seed{seed_G:04}_withsignflipnoise_2dilc_crosstf_full_052425_notf.npz'
+plt.figure(0)
+plt.clf()
+plt.axhline(y=1, color='k', linestyle='--')
+plt.plot(l[:2001],cross[:2001]/clkk[:2001],label='sim 1 gmvjtp klm x no nfg klm / theory clkk')
+plt.plot(l[:2001],cross[:2001]/auto_yuuki[:2001],label='sim 1 gmvjtp klm x no nfg klm / gmvjtp klm auto')
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.xlabel('$\ell$')
+plt.legend(loc='upper right', fontsize='small')
+plt.xscale('log')
+plt.xlim(10,2000)
+plt.ylim(0,2)
+plt.tight_layout()
+plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
+
+plt.clf()
+plt.plot(l[:2001],clkk[:2001],color='k',label='theory clkk')
+plt.plot(l[:2001],auto_yuuki[:2001],label='sim 1 gmvjtp klm')
+plt.plot(l[:2001],auto_temp[:2001],label='sim 1 gmvjtp klm, reprocessed')
+plt.plot(l[:2001],auto_nonfg[:2001],label='sim 1 no nfg klm')
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.xlabel('$\ell$')
+plt.legend(loc='upper right', fontsize='small')
+plt.xscale('log')
+plt.yscale('log')
+plt.xlim(10,2000)
+plt.ylim(1e-10,1e-5)
+plt.tight_layout()
+plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
+
+plt.clf()
+plt.axhline(y=1, color='k', linestyle='--')
+plt.plot(l[:2001],auto_yuuki[:2001]/clkk[:2001],label='sim 1 gmvjtp klm auto / theory clkk')
+plt.plot(l[:2001],auto_temp[:2001]/clkk[:2001],label='sim 1 gmvjtp klm auto reprocessed / theory clkk')
+plt.plot(l[:2001],auto_nonfg[:2001]/clkk[:2001],label='sim 1 no nfg klm auto / theory clkk')
+plt.plot(l[:2001],auto_temp[:2001]/auto_yuuki[:2001],label='sim 1 gmvjtp klm auto reprocessed / sim 1 gmvjtp klm auto')
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.xlabel('$\ell$')
+plt.legend(loc='upper right', fontsize='small')
+plt.xscale('log')
+plt.xlim(10,2000)
+plt.ylim(0,2)
+plt.tight_layout()
+plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
+
+'''
+#=============================================================================#
+# check mocks, after coadd_one
+mock_new = '/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch_gaussian_fgs/outputs/healpix/seed5001/Coadd_allfields_150ghz.fits'
+mock_agora = '/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch_gaussian_fgs/yuuki_scripts/seed5001/Coadd_allfields_150ghz.fits'
+# for pol (Q/U) foregrounds should be low, so difference and compare with Yuuki's mock_agora which has foregrounds
+t,q,u = yuuki_utils.read_partialmap(mock_new, scal=1, pol=True, flipU=False)
+t_yuuki,q_yuuki,u_yuuki = yuuki_utils.read_partialmap(mock_agora, scal=1, pol=True, flipU=False)
+diff = q - q_yuuki
+
+plt.figure(0)
+plt.clf()
+plt.plot(diff)
+plt.axhline(y=0, color='gray', linestyle='--')
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.legend(loc='upper right', fontsize='small')
+plt.tight_layout()
+plt.savefig('/home/users/yukanaka/lensing_template/figs/check_mocks.png')
+
+#=============================================================================#
+# check mocks, after apply_weights_notfdeconv
+# before cinv
+mock_new = '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/ilc/cmb/data/data_tqu1_agora0.7_datamatched_mcmccal_0707231033_Coadd_allfields_cmbmv_seed5001_withsignflipnoise_2dilc_crosstf_full_052425_notf_agoraGfgs.npz'
+mock_G = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/xilc_inputs_precinv/data_tqu1_agora0.7_datamatched_mcmccal_0707231033_Coadd_allfields_cmbmv_seed5001_withsignflipnoise_2dilc_crosstf_full_052425_notf.npz'
 
 alm_new = np.load(mock_new)
 tlm = alm_new['almT']
@@ -115,19 +210,83 @@ clee_G = hp.alm2cl(elm_G)
 
 plt.figure(0)
 plt.clf()
-#plt.plot(np.arange(2001), cltt[:2001], color='firebrick', alpha=0.5, label='cltt new mock sim 5001')
-#plt.plot(np.arange(2001), clee[:2001], color='darkblue', alpha=0.5, label='clee new mock sim 5001')
-#plt.plot(np.arange(2001), cltt_G[:2001], color='lightcoral', alpha=0.5, label='cltt G sim 1')
-#plt.plot(np.arange(2001), clee_G[:2001], color='cornflowerblue', alpha=0.5, linestyle='-', label='clee G sim 1')
 #plt.yscale('log')
-plt.plot(np.arange(2001), cltt[:2001]/cltt_G[:2001], color='firebrick', alpha=0.5, label='cltt new mock sim 5001 / G sim 1')
-plt.plot(np.arange(2001), clee[:2001]/clee_G[:2001], color='darkblue', alpha=0.5, label='clee new mock sim 5001 / G sim 1')
+plt.plot(bin_centers, np.array([(cltt[:4001]/cltt_G[:4001])[digitized == i].mean() for i in range(1, len(bins))]), color='firebrick', alpha=0.5, label='cltt new mock sim 5001 w G fgs / sim 5001 normal')
+plt.plot(bin_centers, np.array([(clee[:4001]/clee_G[:4001])[digitized == i].mean() for i in range(1, len(bins))]), color='darkblue', alpha=0.5, label='clee new mock sim 5001 w G fgs / sim 5001 normal')
 plt.axhline(y=1, color='gray', linestyle='--')
-plt.ylim(0,3)
+plt.ylim(0.95,1.07)
 plt.grid(True, linestyle="--", alpha=0.5)
 plt.xlabel('$\ell$')
 plt.legend(loc='upper right', fontsize='small')
 plt.xscale('log')
-plt.xlim(10,2000)
+plt.xlim(10,4000)
 plt.tight_layout()
 plt.savefig('/home/users/yukanaka/lensing_template/figs/check_mocks.png')
+
+#=============================================================================#
+# check mocks, after cinv, jTP
+# 5001
+fn_yuuki = '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/cinv_jtp_cmbmv_v5_aggcinv_crosstf_measninvps_optimizedinp/tqu1_nside2048_lmin350_lmax4096_mmin100_gmv052425_seed5001_ananinv_v3_highninv_2dcinv_binmaskcinv_v3_notf_Ttol5e-4_v4.npz'
+fn_yuka = '/oak/stanford/orgs/kipac/users/yukanaka/agora_input_skies_spt3g_patch_gaussian_fgs/cinv_jtp_cmbmv_v5_aggcinv_crosstf_measninvps_optimizedinp/tqu1_nside2048_lmin350_lmax4096_mmin100_gmv052425_seed5001_ananinv_v3_highninv_2dcinv_binmaskcinv_v3_notf_Ttol5e-4_v4.npz'
+d_yuuki = np.load(fn_yuuki)
+d_yuka = np.load(fn_yuka)
+tlm1,elm1,blm1 = d_yuuki['tlm'],d_yuuki['elm'],d_yuuki['blm']
+tlm4,elm4,blm4 = d_yuka['tlm'],d_yuka['elm'],d_yuka['blm']
+cltt1 = hp.alm2cl(tlm1)
+cltt4 = hp.alm2cl(tlm4)
+clee1 = hp.alm2cl(elm1)
+clee4 = hp.alm2cl(elm4)
+clbb1 = hp.alm2cl(blm1)
+clbb4 = hp.alm2cl(blm4)
+
+plt.clf()
+plt.axhline(y=1, color='gray', alpha=0.5, linestyle='--')
+plt.plot(bin_centers, np.array([(cltt1[:4001]/cltt4[:4001])[digitized == i].mean() for i in range(1, len(bins))]), color='darkblue', linestyle='-', alpha=0.8, label='sim 5001 input cinv cltt ratio, normal / w G fgs')
+plt.plot(bin_centers, np.array([(clee1[:4001]/clee4[:4001])[digitized == i].mean() for i in range(1, len(bins))]), color='pink', linestyle='-', alpha=0.8, label='sim 5001 input cinv clee ratio, normal / w G fgs')
+plt.xscale('log')
+plt.xlim(200,4096)
+#plt.ylim(0.95,1.05)
+plt.legend(loc='upper right')
+plt.title(f'Cinv Input Spec Check')
+plt.xlabel('$\ell$')
+plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png',bbox_inches='tight')
+
+# G 1-10
+idxs = np.arange(10)+1
+cltt = 0
+clee = 0
+cltt4 = 0
+clee4 = 0
+for idx in idxs:
+    #fn_yuuki = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/cinv_jtp_cmbmv_v5_aggcinv_crosstf_measninvps_optimizedinp/tqu1_nside2048_lmin350_lmax4096_mmin100_gmv052425_seed{idx}_ananinv_v3_highninv_2dcinv_binmaskcinv_v3_notf_Ttol5e-4_v4.npz'
+    # below is actually my reprocessed ver, NOT yuuki's
+    fn_yuuki = f'/scratch/users/yukanaka/cinv_jtp_cmbmv_v5_aggcinv_crosstf_measninvps_optimizedinp/tqu1_nside2048_lmin350_lmax4096_mmin100_gmv052425_seed{idx}_ananinv_v3_highninv_2dcinv_binmaskcinv_v3_notf_Ttol5e-4_v4.npz'
+    fn_yuka = f'/oak/stanford/orgs/kipac/users/yukanaka/gaussian_input_skies_spt3g_patch/cinv_jtp_cmbmv_v5_aggcinv_crosstf_measninvps_optimizedinp/tqu1_nside2048_lmin350_lmax4096_mmin100_gmv052425_seed{idx}_ananinv_v3_highninv_2dcinv_binmaskcinv_v3_notf_Ttol5e-4_v4.npz'
+    d_yuuki = np.load(fn_yuuki)
+    d_yuka = np.load(fn_yuka)
+    tlm1,elm1,blm1 = d_yuuki['tlm'],d_yuuki['elm'],d_yuuki['blm']
+    tlm4,elm4,blm4 = d_yuka['tlm'],d_yuka['elm'],d_yuka['blm']
+    cltt4 += hp.alm2cl(tlm4)
+    clee4 += hp.alm2cl(elm4)
+    # CROSS, plot ratio of cross with auto of noiseless, should be 1
+    cltt += hp.alm2cl(tlm1,tlm4)
+    clee += hp.alm2cl(elm1,elm4)
+cltt4 /= 10
+clee4 /= 10
+cltt /= 10
+clee /= 10
+
+plt.clf()
+plt.axhline(y=1, color='gray', alpha=0.5, linestyle='--')
+plt.plot(bin_centers, np.array([(cltt[:4001]/cltt4[:4001])[digitized == i].mean() for i in range(1, len(bins))]), color='darkblue', linestyle='-', alpha=0.8, label='avg sims 1-10 cinv cltt ratio, normal x noiseless / noiseless')
+plt.plot(bin_centers, np.array([(clee[:4001]/clee4[:4001])[digitized == i].mean() for i in range(1, len(bins))]), color='pink', linestyle='-', alpha=0.8, label='avg sims 1-10 cinv clee ratio, normal x noiseless / noiseless')
+plt.xscale('log')
+plt.xlim(200,4096)
+#plt.ylim(0.95,1.05)
+plt.legend(loc='upper right')
+plt.title(f'Cinv Spec Check')
+plt.xlabel('$\ell$')
+plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png',bbox_inches='tight')
+'''
+
+

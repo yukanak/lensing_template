@@ -14,18 +14,23 @@ import healqest_utils as utils
 
 # GET AND SAVE WEIGHTS FIRST
 
+#parser = argparse.ArgumentParser()
+#parser.add_argument('idx'       , default=None, type=int, help='idx')
+#args = parser.parse_args()
+#idx = args.idx
+#print(idx)
+
 # NOTE: change below
-yaml_file = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
-#yaml_file = 'bt_gmv3500_combined_agora545_cib.yaml'
+yaml_file = 'bt_gmv3500_combined_dummy.yaml'
 btmp = bt.btemplate(yaml_file,combined_tracer=True)
 lmax = btmp.lmax_b
 l = np.arange(lmax+1)
 nside = btmp.nside
 weightsdir = btmp.combined_tracer_weights_dir
-rhos1 = np.load(weightsdir+'/klm1_weight_rhos.npy')
-rhos2 = np.load(weightsdir+'/klm2_weight_rhos.npy')
-sqrt_kk_over_ii1 = np.load(weightsdir+'/klm1_weight_sqrt_kk_over_ii.npy')
-sqrt_kk_over_ii2 = np.load(weightsdir+'/klm2_weight_sqrt_kk_over_ii.npy')
+rhos1 = 10/11 * np.ones(lmax+1)
+rhos2 = 1/11 * np.ones(lmax+1)
+sqrt_kk_over_ii1 = 1
+sqrt_kk_over_ii2 = 1
 cib_tracer_dir = btmp.cib_tracer_dir
 
 #========== SECTION WEIGHTS IN TO L BINS ==========#
@@ -58,7 +63,7 @@ def apply_bin_scalings_to_weights(weights_base, bin_edges, A, lmax):
 def random_grid_search(rhos1_base,rhos2_base,bin_edges,btmp,klm1,klm2,
                        sqrt_kk_over_ii1,sqrt_kk_over_ii2,
                        n_draws=200,sigma_A1=0.2,sigma_A2=0.2,
-                       tune_A1=True,tune_A2=True,seed=0,didx=0):
+                       tune_A1=True,tune_A2=True,seed=0):
 
     lmax = btmp.lmax_b
     rng = np.random.default_rng(seed)
@@ -112,7 +117,7 @@ def random_grid_search(rhos1_base,rhos2_base,bin_edges,btmp,klm1,klm2,
         weights2_L = rhos2_L * sqrt_kk_over_ii2
 
         # Evaluate
-        a_pow = score(weights1_L=weights1_L,weights2_L=weights2_L,btmp=btmp,klm1=klm1,klm2=klm2,didx=didx)
+        a_pow = score(weights1_L=weights1_L,weights2_L=weights2_L,btmp=btmp,klm1=klm1,klm2=klm2,)
 
         if a_pow > best["a_pow"]:
             best.update(
@@ -123,18 +128,13 @@ def random_grid_search(rhos1_base,rhos2_base,bin_edges,btmp,klm1,klm2,
                 weights2_L=weights2_L.copy(),
             )
             print(f"[best @ draw {t}] a_pow={a_pow:.6e}")
-            print("A1 bins:", best["A1_bins"])
-            print("A2 bins:", best["A2_bins"])
 
         if t % 5 == 0:
             print(f"[progress] draw {t}/{n_draws} current a_pow={a_pow:.6e} best={best['a_pow']:.6e}", flush=True)
 
         if t % 10 == 0:
-            #TODO
             np.save(btmp.combined_tracer_weights_dir + f"/checkpoint_klm1_weight_tuned_normalized.npy", best["weights1_L"])
             np.save(btmp.combined_tracer_weights_dir + f"/checkpoint_klm2_weight_tuned_normalized.npy", best["weights2_L"])
-            #np.save(btmp.combined_tracer_weights_dir + f"/checkpoint_klm1_weight_tuned_normalized_data.npy", best["weights1_L"])
-            #np.save(btmp.combined_tracer_weights_dir + f"/checkpoint_klm2_weight_tuned_normalized_data.npy", best["weights2_L"])
 
     return best
 
@@ -151,92 +151,56 @@ def evaluate_candidate(weights1_L,weights2_L,idx,btmp,klm1,klm2):
     a_pow = np.mean(a[50:201])
     return a_pow
 
-def score(weights1_L,weights2_L,btmp,klm1,klm2,didx=0):
+def score(weights1_L,weights2_L,btmp,klm1,klm2):
     vals = []
     #TODO
     idxs = np.arange(10)+1
+    #idxs = np.arange(1)+1
     for idx in idxs:
         k1 = klm1[idx-1,:]
         k2 = klm2[idx-1,:]
         vals.append(evaluate_candidate(weights1_L=weights1_L,weights2_L=weights2_L,
                                        idx=idx,btmp=btmp,klm1=k1,klm2=k2,))
-    # FOR DATA
-    #k1 = klm1
-    #k2 = klm2
-    #vals.append(evaluate_candidate(weights1_L=weights1_L,weights2_L=weights2_L,
-    #                               idx=didx,btmp=btmp,klm1=k1,klm2=k2,))
     return np.mean(vals)
 
 #=============================================================================#
 
-didx = 0
 cib_tracer_dir = btmp.cib_tracer_dir
 #TODO
 idxs = np.arange(10)+1
-tmp = btmp.get_debiased_klm(1)
-klm1 = np.zeros((len(idxs),len(tmp)),dtype=np.complex_)
-klm2 = np.zeros((len(idxs),len(tmp)),dtype=np.complex_)
+#idxs = np.arange(1)+1
+klm1 = np.zeros((len(idxs),2003001),dtype=np.complex_)
+klm2 = np.zeros((len(idxs),2003001),dtype=np.complex_)
 for idx in idxs:
     print(f'loading idx: {idx}',flush=True)
-    # Get reconstructed 2019/2020 analysis phi tracer FOR EACH SIM
-    klm1[idx-1,:] = btmp.get_debiased_klm(idx)
-    klm1[idx-1,:] = utils.reduce_lmax(klm1[idx-1,:], lmax=lmax)
+    klm1_map = hp.read_map(cib_tracer_dir + f'/tracer_type1_seed{idx}.fits')
+    klm1[idx-1,:] = hp.map2alm(klm1_map, lmax=lmax)
     # Get CIB-based phi tracer
-    klm2_map = hp.read_map(cib_tracer_dir + f'/cib_tracer_seed{idx}.fits')
+    klm2_map = hp.read_map(cib_tracer_dir + f'/tracer_type2_seed{idx}.fits')
     klm2[idx-1,:] = hp.map2alm(klm2_map, lmax=lmax)
-# Get reconstructed 2019/2020 analysis phi tracer FOR DATA
-#idxs = [0]
-#klm1 = btmp.get_debiased_klm(didx)
-#klm1 = utils.reduce_lmax(klm1, lmax=lmax)
-## Get CIB-based phi tracer
-#klm2_map = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_CIB-GNILC-F545_2048_R2.00.fits")
-#rot = hp.Rotator(coord=['G','C'])
-#klm2_map = rot.rotate_map_pixel(klm2_map)
-#mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits")
-#klm2_map *= mask * 1e6 / 58.04
-#klm2 = hp.map2alm(klm2_map, lmax=lmax)
-# AGORA
-#idxs = [5001]
-#didx = 5001
-#klm1 = btmp.get_debiased_klm(didx)
-#klm1 = utils.reduce_lmax(klm1, lmax=lmax)
-## Get CIB
-#klm2_map = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/agora_len_mag_cibmap_planck_545ghz_nside2048.fits")
-#mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits")
-#klm2_map *= mask * (1/58.04)
-#klm2 = hp.map2alm(klm2_map, lmax=lmax)
 
 # choose bins (keep small)
 bin_edges = np.array([0, 50, 100, 500, 1000, 1500, 2001])
 
-#TODO: NOT SEEDED
 best = random_grid_search(rhos1_base=rhos1,rhos2_base=rhos2,
                           sqrt_kk_over_ii1=sqrt_kk_over_ii1,sqrt_kk_over_ii2=sqrt_kk_over_ii2,
                           btmp=btmp,klm1=klm1, klm2=klm2,
                           bin_edges=bin_edges,n_draws=80,#n_draws=300,
                           sigma_A1=0.2, #0.05, # usually keep QE scalings tight if you even tune them
                           sigma_A2=0.2, #0.30, # allow more freedom on CIB
-                          tune_A1=True,tune_A2=True,seed=None,didx=didx)
+                          tune_A1=True,tune_A2=True,seed=None,)
 
 # Save best weights
-#TODO
 np.save(weightsdir+f'/klm1_weight_tuned.npy', best["weights1_L"])
 np.save(weightsdir+f'/klm2_weight_tuned.npy', best["weights2_L"])
 np.save(weightsdir+f'/A1_bins_klm1_weight_tuned.npy', best["A1_bins"])
 np.save(weightsdir+f'/A2_bins_klm2_weight_tuned.npy', best["A2_bins"])
-#np.save(weightsdir+f'/klm1_weight_tuned_data.npy', best["weights1_L"])
-#np.save(weightsdir+f'/klm2_weight_tuned_data.npy', best["weights2_L"])
-#np.save(weightsdir+f'/A1_bins_klm1_weight_tuned_data.npy', best["A1_bins"])
-#np.save(weightsdir+f'/A2_bins_klm2_weight_tuned_data.npy', best["A2_bins"])
 print("best a_pow:", best["a_pow"])
 print("best A1 bins:", best["A1_bins"])
 print("best A2 bins:", best["A2_bins"])
 for idx in idxs:
-    #TODO
     k1 = klm1[idx-1,:]
     k2 = klm2[idx-1,:]
-    #k1 = klm1
-    #k2 = klm2
     klm_combined = hp.almxfl(k1,best["weights1_L"]) + hp.almxfl(k2,best["weights2_L"])
     klm_combined = np.nan_to_num(klm_combined, nan=0.0, posinf=0.0, neginf=0.0)
     hp.write_alm(btmp.dir_combined_tracer+f'/klm_combined_cib_qe_seed{idx}_tuned.alm', klm_combined, overwrite=True)
@@ -257,6 +221,5 @@ plt.yscale('log')
 plt.xlim(10,2000)
 plt.ylim(1e-2,2)
 plt.tight_layout()
-#TODO
-plt.savefig('/home/users/yukanaka/lensing_template/figs/rhos_weights_tuned.png')
+plt.savefig('/home/users/yukanaka/lensing_template/figs/rhos_weights_tuned_dummy.png')
 

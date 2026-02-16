@@ -270,7 +270,10 @@ class btemplate():
             n0   = 1/respall[:self.lmax+1]
         elif idx==0 or idx>5000:
             print("load RDN0")
+            #TODO
             n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.rdn0fname%(self.qe.upper(),idx))[:self.lmax+1]
+            #n0   = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/'+"/SAN0/"+self.rdn0fname%(self.qe.upper(),idx))[:self.lmax+1]
+            #n0   = hutils.loadcls('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4//clkk_polspice_mfxxonly_mfsplit_nops/',488,'gmv','N0',N0=None,Lmin=24,Lmax=2500,use_cache=False,startidx=11)[:self.lmax+1]
         else:
             n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.san0fname%self.qe.upper())[:self.lmax+1,idx-1]
         kfilt = self.clkk/(self.clkk+n0)
@@ -284,16 +287,19 @@ class btemplate():
             self.e_lmmask = grid2alm(lmmask)
         return self.e_lmmask
 
-    def get_btpl_alm(self,idx,overwrite=False,savefile=True):
+    def get_btpl_alm(self,idx,recompute=False,savefile=True):
         fname = self.outdir+self.btpl_fname%idx
-        if overwrite or not os.path.isfile(fname):
+        if recompute or not os.path.isfile(fname):
             if self.combined_tracer:
+                #TODO
                 #klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d.alm"%idx,hdu=1)
                 klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d_tuned.alm"%idx,hdu=1)
                 # Already WF at the combination step so no need for kfilt
                 pwf = hp.almxfl(klm, safe_inv(self.phi2kap(self.ls)))
             else:
                 klm      = self.get_debiased_klm(idx)
+                #TODO
+                #klm /= 0.9400585534643191
                 kfilt   = self.get_kap_filt(idx)
                 pwf  = hp.almxfl(klm, kfilt * safe_inv(self.phi2kap(self.ls)))
 
@@ -339,14 +345,14 @@ class btemplate():
         phi = ra/180.0*np.pi
         return tht,phi
 
-    def get_masked_spec(self, idx, overwrite=False, savefile=True):
+    def get_masked_spec(self, idx, recompute=False, savefile=True):
         # get non-BK purified spec
         fname = self.outdir+self.btpl_spec_fname%idx
-        if overwrite or not os.path.isfile(fname):
+        if recompute or not os.path.isfile(fname):
             mask = hp.read_map(self.maskfname)
             fsky = np.sum(mask**2)/mask.size
 
-            btpl_lm  = self.get_btpl_alm(idx,overwrite=overwrite,savefile=savefile)
+            btpl_lm  = self.get_btpl_alm(idx,recompute=recompute,savefile=savefile)
             btpl_map = hp.alm2map(btpl_lm, self.nside, lmax=self.lmax_b)
             auto     = hp.anafast(btpl_map * mask)/fsky
             cross = auto_in = None

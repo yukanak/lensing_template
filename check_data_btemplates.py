@@ -7,9 +7,11 @@ import healpy as hp
 yaml_file = 'bt_gmv3500.yaml'
 yaml_file_prfhrd = 'bt_gmv3500_prfhrd.yaml'
 yaml_file_pp = 'bt_gmv3500_pp.yaml'
+yaml_file_combined = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
 btmp_standard = bt.btemplate(yaml_file)
 btmp_prfhrd = bt.btemplate(yaml_file_prfhrd)
 btmp_pp = bt.btemplate(yaml_file_pp)
+btmp_combined = bt.btemplate(yaml_file_combined,combined_tracer=True)
 lmax = 4096
 l = np.arange(lmax+1)
 lbins = np.logspace(np.log10(30),np.log10(1000),20)
@@ -27,30 +29,33 @@ fwhm_rad = np.radians(fwhm_arcmin / 60.0)  # convert arcmin to radians
 bl = hp.gauss_beam(fwhm=fwhm_rad, lmax=4096)
 didx = 0
 
-bt_standard_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_0001.fits')
-bt_standard_sim1 = hp.almxfl(bt_standard_sim1, bl)
-bt_standard_sim1_map = hp.alm2map(bt_standard_sim1,nside=nside)
-bt_prfhrd_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_0001.fits')
-bt_prfhrd_sim1 = hp.almxfl(bt_prfhrd_sim1, bl)
-bt_prfhrd_sim1_map = hp.alm2map(bt_prfhrd_sim1,nside=nside)
-bt_pp_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_0001.fits')
-bt_pp_sim1 = hp.almxfl(bt_pp_sim1, bl)
-bt_pp_sim1_map = hp.alm2map(bt_pp_sim1,nside=nside)
-diff_sim1 = bt_standard_sim1_map - bt_prfhrd_sim1_map
-diff_sim1_pp = bt_standard_sim1_map - bt_pp_sim1_map
+#bt_standard_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_0001.fits')
+#bt_standard_sim1 = hp.almxfl(bt_standard_sim1, bl)
+#bt_standard_sim1_map = hp.alm2map(bt_standard_sim1,nside=nside)
+#bt_prfhrd_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_0001.fits')
+#bt_prfhrd_sim1 = hp.almxfl(bt_prfhrd_sim1, bl)
+#bt_prfhrd_sim1_map = hp.alm2map(bt_prfhrd_sim1,nside=nside)
+#bt_pp_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_0001.fits')
+#bt_pp_sim1 = hp.almxfl(bt_pp_sim1, bl)
+#bt_pp_sim1_map = hp.alm2map(bt_pp_sim1,nside=nside)
+#diff_sim1 = bt_standard_sim1_map - bt_prfhrd_sim1_map
+#diff_sim1_pp = bt_standard_sim1_map - bt_pp_sim1_map
 
-bt_standard = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_%04d.fits'%didx)
-bt_standard = hp.almxfl(bt_standard, bl)
-bt_standard_map = hp.alm2map(bt_standard,nside=nside)
-bt_prfhrd = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_%04d.fits'%didx)
-bt_prfhrd = hp.almxfl(bt_prfhrd, bl)
-bt_prfhrd_map = hp.alm2map(bt_prfhrd,nside=nside)
-bt_pp = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_%04d.fits'%didx)
-bt_pp = hp.almxfl(bt_pp, bl)
-bt_pp_map = hp.alm2map(bt_pp,nside=nside)
-diff = bt_standard_map - bt_prfhrd_map
-diff_pp = bt_standard_map - bt_pp_map
-diff_pp_prfhrd = bt_prfhrd_map - bt_pp_map
+#bt_standard = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_%04d.fits'%didx)
+#bt_standard = hp.almxfl(bt_standard, bl)
+#bt_standard_map = hp.alm2map(bt_standard,nside=nside)
+#bt_prfhrd = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_%04d.fits'%didx)
+#bt_prfhrd = hp.almxfl(bt_prfhrd, bl)
+#bt_prfhrd_map = hp.alm2map(bt_prfhrd,nside=nside)
+#bt_pp = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_%04d.fits'%didx)
+#bt_pp = hp.almxfl(bt_pp, bl)
+#bt_pp_map = hp.alm2map(bt_pp,nside=nside)
+#bt_combined = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_cib_qe_pr3_cib_pr4_kappa_standard//btmpl_alm_%04d.fits'%didx)
+#bt_combined = hp.almxfl(bt_combined, bl)
+#bt_combined_map = hp.alm2map(bt_combined,nside=nside)
+#diff = bt_standard_map - bt_prfhrd_map
+#diff_pp = bt_standard_map - bt_pp_map
+#diff_pp_prfhrd = bt_prfhrd_map - bt_pp_map
 
 a_standard, _, _ = btmp_standard.get_masked_spec(didx)
 auto_standard = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))])
@@ -58,6 +63,8 @@ a_prfhrd, _, _ = btmp_prfhrd.get_masked_spec(didx)
 auto_prfhrd = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
 a_pp, _, _ = btmp_pp.get_masked_spec(didx)
 auto_pp = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+a_combined, _, _ = btmp_combined.get_masked_spec(didx)
+auto_combined = np.array([a_combined[digitized == i].mean() for i in range(1, len(lbins))])
 
 # Agora sims
 idxs = np.arange(10)+5001
@@ -85,12 +92,15 @@ idxs = np.arange(499)+1
 autos_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_combined = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_combined = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_in_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_in_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_in_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_in_combined = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
@@ -108,16 +118,23 @@ for ii, idx in enumerate(idxs):
     a_pp = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
     c_pp = [c_pp[digitized == i].mean() for i in range(1, len(lbins))]
     a_in_pp = [a_in_pp[digitized == i].mean() for i in range(1, len(lbins))]
+    a_combined, c_combined, a_in_combined = btmp_combined.get_masked_spec(idx)
+    a_combined = [a_combined[digitized == i].mean() for i in range(1, len(lbins))]
+    c_combined = [c_combined[digitized == i].mean() for i in range(1, len(lbins))]
+    a_in_combined = [a_in_combined[digitized == i].mean() for i in range(1, len(lbins))]
 
     autos_standard[ii,:] = np.array(a_standard)
     autos_prfhrd[ii,:] = np.array(a_prfhrd)
     autos_pp[ii,:] = np.array(a_pp)
+    autos_combined[ii,:] = np.array(a_combined)
     cross_standard[ii,:] = np.array(c_standard)
     cross_prfhrd[ii,:] = np.array(c_prfhrd)
     cross_pp[ii,:] = np.array(c_pp)
+    cross_combined[ii,:] = np.array(c_combined)
     autos_in_standard[ii,:] = np.array(a_in_standard)
     autos_in_prfhrd[ii,:] = np.array(a_in_prfhrd)
     autos_in_pp[ii,:] = np.array(a_in_pp)
+    autos_in_combined[ii,:] = np.array(a_in_combined)
     diff_auto_prfhrd[ii,:] = np.array(a_standard) - np.array(a_prfhrd)
     diff_auto_pp[ii,:] = np.array(a_standard) - np.array(a_pp)
     diff_auto_pp_prfhrd[ii,:] = np.array(a_prfhrd) - np.array(a_pp)

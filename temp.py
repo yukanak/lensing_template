@@ -7,132 +7,97 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.signal import savgol_filter
 import matplotlib.pyplot as plt
 from astropy import constants as const
+import btemplate as bt
 sys.path.append('/home/users/yukanaka/healqest/healqest/src/')
 import healqest_utils as utils
 
 nside = 2048
-os.environ["HEALPIX"] = "/home/users/yukanaka/miniconda3/envs/tora_py3/Healpix_3.83/"
-spice = "/home/users/yukanaka/PolSpice_v03-08-03/bin/spice"
-#kmap = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_Lensing_2048_R2.00/data/kappa_map_PR3_nside2048.fits")
-#mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_Lensing_2048_R2.00/data/mask_scalar.fits")
-#kmap_bkspt = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/bksptpol_delens/dat_k_map.fits")
-#klm = hp.read_alm("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_Lensing_2048_R2.00/data/dat_klm.fits")
-
-for i in [0,1,2,3,5,6,7,8]: # 8 patches
-    cib_mask = f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/bksptpol_delens/190717_cibtest/mask_patch_{i}.fits"
-
-    clfile = f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/bksptpol_delens/cls_by_yuka/cls_clik_545ghz_patch{i}.dat"
-    # clik
-    subprocess.call(
-        [
-            spice,
-            "-mapfile",
-            "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_CIB-GNILC-F545_2048_R2.00.fits",
-            "-maskfile",
-            cib_mask,
-            "-beam",
-            "5",
-            "-pixelfile",
-            "YES",
-            "-mapfile2",
-            "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/bksptpol_delens/dat_k_map.fits",
-            "-maskfile2",
-            "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/bksptpol_delens/mask.fits",
-            "-pixelfile2",
-            "YES",
-            "-clfile",
-            clfile,
-            "-nlmax",
-            "1500",
-            "-apodizesigma",
-            "15",
-            "-thetamax",
-            "20",
-            "-subdipole",
-            "YES",
-            "-subav",
-            "YES",
-            "-apodizetype",
-            "0",
-            "-verbosity",
-            "NO",
-            "-polarization",
-            "NO",
-        ])
-
-# check
 lmax = 2000
-ell = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/cls/cls_clkk_pr4.dat")[:lmax+1,0]
-cliis = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clii_545ghz_patch{i}.dat")[:lmax+1,1] * (1e6/58.04)**2 for i in [0,1,2,3,5,6,7,8]])
-clii = np.nanmean(cliis, axis=0)
-cliks = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clik_545ghz_pr4kappa_patch{i}.dat")[:lmax+1,1] * (1e6/58.04) for i in [0,1,2,3,5,6,7,8]])
-clik = np.nanmean(cliks, axis=0)
-clkk = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/cls/cls_clkk_pr4.dat")[:lmax+1,1]
-# cib spectra from BKSPT paper
+l = np.arange(lmax+1)
+clfile_path = '/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lenspotentialCls.dat'
+ell,sltt,slee,slbb,slte,slpp,sltp,slep = utils.get_unlensedcls(clfile_path,lmax)
+clkk = slpp * (l*(l+1))**2/4
+mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits")
+yaml_file = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
+btmp = bt.btemplate(yaml_file,combined_tracer=True)
+# CIB map
+klm2_map = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_CIB-GNILC-F545_2048_R2.00.fits")
+rot = hp.Rotator(coord=['G','C'])
+klm2_map = rot.rotate_map_pixel(klm2_map)
+klm2_map *= mask * 1e6 / 58.04
+klm2 = hp.map2alm(klm2_map, lmax=lmax)
+# SPT3G QE
+klm1 = btmp.get_debiased_klm(0)
+klm1 = utils.reduce_lmax(klm1, lmax=lmax)
+# auto and cross
+clii1 = hp.alm2cl(klm1)
+clii2 = hp.alm2cl(klm2)
+clii12 = hp.alm2cl(klm1,klm2)
+# does it match what I had in sims?
+klm2_map = hp.read_map('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/pr3_cib_pr4_kappa_tracer/cib_tracer_seed1.fits')
+klm2_map *= mask
+klm2 = hp.map2alm(klm2_map, lmax=lmax)
+klm1 = btmp.get_debiased_klm(1)
+klm1 = utils.reduce_lmax(klm1, lmax=lmax)
+clii1_sim1 = hp.alm2cl(klm1)
+clii2_sim1 = hp.alm2cl(klm2)
+clii12_sim1 = hp.alm2cl(klm1,klm2)
+
+rho = clii12/np.sqrt(clii1*clii2)
+print('rho, data: ',np.mean(rho[50:200]))
+rho = clii12_sim1/np.sqrt(clii1_sim1*clii2_sim1)
+print('rho, sim1: ',np.mean(rho[50:200]))
+
+#=============================================================================#
+fsky = np.mean(mask**2)
+# try crossing Agora CIB realization at 545 GHz with Agora GMV reconstructed kappa
+agora_cib_map = hp.read_map('/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/agora_len_mag_cibmap_planck_545ghz_nside2048.fits')
+agora_cib_map *= mask * 1 / 58.04
+klm1 = btmp.get_debiased_klm(5001)
+klm1 = utils.reduce_lmax(klm1, lmax=lmax)
+klm1_map = hp.alm2map(klm1,nside)
+#agora_cib_cross_recon_qe = hp.alm2cl(klm1,agora_cib) * np.mean(mask) # FSKY (but this makes no sense?)
+agora_cib_cross_recon_qe = hp.anafast(agora_cib_map,klm1_map)/fsky
+# INPUT KAPPA FOR AGORA
+klm_input_agora = hp.almxfl(hp.read_alm(f'/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/agora_spt3g_input_plm_lmax4096.fits'),(np.arange(4096+1)*(np.arange(4096+1)+1))/2)
+#klm_input_agora = utils.reduce_lmax(klm_input_agora, lmax=lmax)
+klm_input_agora_map = hp.alm2map(klm_input_agora,nside)
+#hp.write_map(f"/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/agora_spt3g_input_kappa_map_nside{nside}.fits", klm_input_agora_map)
+klm_input_agora_map *= mask
+#agora_cib_cross_input_klm = hp.alm2cl(klm_input_agora,agora_cib) * np.mean(mask**2)**2
+#agora_recon_qe_cross_input_klm = hp.alm2cl(klm_input_agora,klm1) / np.mean(mask)
+agora_cib_cross_input_klm = hp.anafast(agora_cib_map,klm_input_agora_map)/fsky
+agora_recon_qe_cross_input_klm = hp.anafast(klm1_map,klm_input_agora_map)/fsky
+agora_input_klm = hp.anafast(klm_input_agora_map,klm_input_agora_map)/fsky
+agora_cib = hp.anafast(agora_cib_map,agora_cib_map)/fsky
+# BKSPT clii
 cib = np.load("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/patches_cibxkap_cibauto_clkk.npz")
 clik_bkspt = np.nanmean(cib['cibxkap'], axis=0) * (1e6/58.04) # MJy/sr -> uK_CMB
 clii_bkspt = np.nanmean(cib['cibauto'], axis=0) * (1e6/58.04)**2 # MJy/sr -> uK_CMB
-clkk_bkspt = cib['clkk']
-# clik with PR3 CIB + PR3 kappa
-cliks_pr3 = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clik_545ghz_patch{i}.dat")[:1501,1] * (1e6/58.04) for i in [0,1,2,3,5,6,7,8]])
-clik_pr3 = np.nanmean(cliks_pr3, axis=0)
-# clik with BKSPT "dat_k_map.fits"
-cliks_bkspt_yuka = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/bksptpol_delens/cls_by_yuka/cls_clik_545ghz_patch{i}.dat")[:lmax+1,1] * (1e6/58.04) for i in [0,1,2,3,5,6,7,8]])
-clik_bkspt_yuka = np.nanmean(cliks_bkspt_yuka, axis=0)
-# theory clkk
-clfile_path = '/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lenspotentialCls.dat'
-ell,sltt,slee,slbb,slte,slpp,sltp,slep = utils.get_unlensedcls(clfile_path,lmax)
-clkk_theory = slpp * (np.arange(lmax+1)*(np.arange(lmax+1)+1))**2/4
-
-# smooth
-def bin_interp_spectra(spectrum, li=np.arange(2,2001), average_window=81):
-    '''
-    from cib_utils.py
-    spectrum: unbinned spectrum
-    li      : range of ell to be interpolated
-    '''
-    # Moving average to suppress noise and jaggedness
-    spectrum_filtered = savgol_filter(spectrum, average_window, 0)
-    # Interpolation to guarantee continuity and smooth derivatives, and to allow consistent evaluation for almxfl and synalm
-    cl_spline_mean = InterpolatedUnivariateSpline(np.arange(0, len(spectrum_filtered)), spectrum_filtered)
-    cl_li = cl_spline_mean(li)
-    return cl_li
-li = np.arange(2,lmax+1)
-clkk_spline = InterpolatedUnivariateSpline(ell, clkk_theory)
-clkk_theory = clkk_spline(li)
-clii = bin_interp_spectra(clii, li)
-clik = bin_interp_spectra(clik, li)
-clkk = bin_interp_spectra(clkk, li)
-clik_pr3 = bin_interp_spectra(clik_pr3, li)
-clik_bkspt_yuka = bin_interp_spectra(clik_bkspt_yuka, li)
-li = np.arange(2,1500+1)
-clii_bkspt = bin_interp_spectra(clii_bkspt, li)
-clik_bkspt = bin_interp_spectra(clik_bkspt, li)
-clkk_bkspt = bin_interp_spectra(clkk_bkspt, li)
-
-# rho
-li = np.arange(2,1500+1)
-rho_bkspt_spline = InterpolatedUnivariateSpline(li, np.nan_to_num(clik_bkspt / np.sqrt(clii_bkspt * clkk_bkspt)))
-rho_bkspt = rho_bkspt_spline(ell)
-li = np.arange(2,lmax+1)
-rho_spline = InterpolatedUnivariateSpline(li, np.nan_to_num(clik / np.sqrt(clii * clkk_theory)))
-rho = rho_spline(ell)
-rho_pr3_spline = InterpolatedUnivariateSpline(li, np.nan_to_num(clik_pr3 / np.sqrt(clii * clkk_theory)))
-rho_pr3 = rho_pr3_spline(ell)
-print('rho_bkspt: ', rho_bkspt)
-print('rho: ', rho)
+#=============================================================================#
 
 # plot
 plt.figure(0)
 plt.clf()
-
-plt.axhline(y=1, color='gray', linestyle='--')
-plt.plot(np.arange(2,1501), clik_bkspt/clik_pr3[:1499], color='firebrick', alpha=0.5, label='clik BKSPT / clik WITH PR3 KAPPA')
-plt.plot(np.arange(2,1501), clik_bkspt/clik[:1499], color='lightcoral', alpha=0.5, label='clik BKSPT / clik')
-plt.plot(np.arange(2,1501), clik_bkspt/clik_bkspt_yuka[:1499], color='slateblue', alpha=0.5, label='clik BKSPT / clik WITH KAPPA FROM KIMMY')
-#plt.plot(np.arange(2,1501), clkk_bkspt/clkk[:1499], color='cornflowerblue', alpha=0.5, label='clkk BKSPT / clkk')
-#plt.plot(np.arange(2,1501), clii_bkspt/clii[:1499], color='orange', alpha=0.5, label='clii BKSPT / clii')
-plt.ylim(0.5,1.5)
+plt.plot(l, clkk, 'k', label='Fiducial $C_L^{\kappa\kappa}$')
+plt.plot(l, agora_cib_cross_recon_qe[:lmax+1], color='lightcoral', alpha=0.8, label='agora cib x agora recon qe')
+plt.plot(l, agora_cib_cross_input_klm[:lmax+1], color='lightgreen', alpha=0.8, label='agora cib x agora input klm')
+plt.plot(l, agora_recon_qe_cross_input_klm[:lmax+1], color='slateblue', alpha=0.8, label='agora input klm x agora recon qe')
+plt.plot(l, agora_input_klm[:lmax+1], color='orange', alpha=0.8, label='agora input klm auto')
+plt.plot(l, agora_cib[:lmax+1], color='magenta', alpha=0.8, label='agora cib auto')
+plt.plot(l[:1501], clii_bkspt[:1501], color='violet', linestyle='--', alpha=0.8, label='BKSPT clii')
+plt.plot(l[:1501], clik_bkspt[:1501], color='silver', linestyle='--', alpha=0.8, label='BKSPT clik')
+plt.yscale('log')
+#plt.axhline(y=1, color='gray', linestyle='--')
+#plt.plot(l, agora_cib_cross_recon_qe/clkk, color='lightcoral', alpha=0.8, label='agora cib x agora recon qe / fid clkk')
+#plt.plot(l, agora_cib_cross_input_klm/clkk, color='lightgreen', alpha=0.8, label='agora cib x agora input klm / fid clkk')
+#plt.plot(l, agora_recon_qe_cross_input_klm/clkk, color='slateblue', alpha=0.8, label='agora input klm x agora recon qe / fid clkk')
+#plt.plot(l, clii1/clii1_sim1, color='lightgreen', alpha=0.8, label='clii1 data / sim 1')
+#plt.plot(l, clii2/clii2_sim1, color='lightcoral', alpha=0.8, label='clii2 data / sim 1')
+#plt.plot(l, clii12/clii12_sim1, color='slateblue', alpha=0.8, label='clii12 data / sim 1')
+#plt.ylim(0.5,1.5)
+#plt.ylim(-1,2)
+#plt.ylim(0,0.3)
 plt.grid(True, linestyle="--", alpha=0.5)
 plt.xlabel('$\ell$')
 plt.legend(loc='lower left', fontsize='small')
