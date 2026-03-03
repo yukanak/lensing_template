@@ -43,10 +43,10 @@ def bin_interp_spectra(spectrum, li=np.arange(2,2001), average_window=81):
 lmax = 2000
 nside = 2048
 l = np.arange(lmax+1)
-dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/lenz_cib_phi_tracer/'
-clii = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/lenz_et_al_cib/cls/cls_clii.dat")[:lmax+1,1]# * (1e6/58.04)**2 # MJy/sr -> uK_CMB
+dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/lenz_cib_pr4_kappa/'
+clii = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/lenz_et_al_cib/cls/cls_clii.dat")[:lmax+1,1] * (1e6/58.04)**2 # MJy/sr -> uK_CMB
 clkk = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/lenz_et_al_cib/cls/cls_clkk_pr4.dat")[:lmax+1,1]
-clik = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/lenz_et_al_cib/cls/cls_clik_pr4.dat")[:lmax+1,1]# * (1e6/58.04) # MJy/sr -> uK_CMB
+clik = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/lenz_et_al_cib/cls/cls_clik_pr4.dat")[:lmax+1,1] * (1e6/58.04) # MJy/sr -> uK_CMB
 # Theory clkk
 clfile_path = '/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lenspotentialCls.dat'
 ell,sltt,slee,slbb,slte,slpp,sltp,slep = utils.get_unlensedcls(clfile_path,lmax)

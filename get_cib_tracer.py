@@ -28,7 +28,7 @@ def rd2tp(ra, dec):
 lmax = 1500
 nside = 2048
 l = np.arange(lmax+1)
-dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_phi_pp_tracer/'
+dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/bksptpol/'
 # there are 8 cib['cibxkap'] and cib['cibauto'] spectra in the file
 # from the 8 high Galactic latitude patches as noted in the BKSPT delensing paper
 cib = np.load("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/patches_cibxkap_cibauto_clkk.npz")

@@ -29,34 +29,6 @@ fwhm_rad = np.radians(fwhm_arcmin / 60.0)  # convert arcmin to radians
 bl = hp.gauss_beam(fwhm=fwhm_rad, lmax=4096)
 didx = 0
 
-#bt_standard_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_0001.fits')
-#bt_standard_sim1 = hp.almxfl(bt_standard_sim1, bl)
-#bt_standard_sim1_map = hp.alm2map(bt_standard_sim1,nside=nside)
-#bt_prfhrd_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_0001.fits')
-#bt_prfhrd_sim1 = hp.almxfl(bt_prfhrd_sim1, bl)
-#bt_prfhrd_sim1_map = hp.alm2map(bt_prfhrd_sim1,nside=nside)
-#bt_pp_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_0001.fits')
-#bt_pp_sim1 = hp.almxfl(bt_pp_sim1, bl)
-#bt_pp_sim1_map = hp.alm2map(bt_pp_sim1,nside=nside)
-#diff_sim1 = bt_standard_sim1_map - bt_prfhrd_sim1_map
-#diff_sim1_pp = bt_standard_sim1_map - bt_pp_sim1_map
-
-#bt_standard = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_%04d.fits'%didx)
-#bt_standard = hp.almxfl(bt_standard, bl)
-#bt_standard_map = hp.alm2map(bt_standard,nside=nside)
-#bt_prfhrd = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr_prfhrd/btmpl_alm_%04d.fits'%didx)
-#bt_prfhrd = hp.almxfl(bt_prfhrd, bl)
-#bt_prfhrd_map = hp.alm2map(bt_prfhrd,nside=nside)
-#bt_pp = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_test_uncorr_pp/btmpl_alm_%04d.fits'%didx)
-#bt_pp = hp.almxfl(bt_pp, bl)
-#bt_pp_map = hp.alm2map(bt_pp,nside=nside)
-#bt_combined = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_cib_qe_pr3_cib_pr4_kappa_standard//btmpl_alm_%04d.fits'%didx)
-#bt_combined = hp.almxfl(bt_combined, bl)
-#bt_combined_map = hp.alm2map(bt_combined,nside=nside)
-#diff = bt_standard_map - bt_prfhrd_map
-#diff_pp = bt_standard_map - bt_pp_map
-#diff_pp_prfhrd = bt_prfhrd_map - bt_pp_map
-
 a_standard, _, _ = btmp_standard.get_masked_spec(didx)
 auto_standard = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))])
 a_prfhrd, _, _ = btmp_prfhrd.get_masked_spec(didx)
@@ -71,6 +43,9 @@ idxs = np.arange(10)+5001
 autos_standard_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_pp_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_pp_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_pp_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
     a_standard, _, _ = btmp_standard.get_masked_spec(idx)
@@ -83,9 +58,15 @@ for ii, idx in enumerate(idxs):
     autos_standard_agora[ii,:] = np.array(a_standard)
     autos_prfhrd_agora[ii,:] = np.array(a_prfhrd)
     autos_pp_agora[ii,:] = np.array(a_pp)
+    diff_auto_prfhrd_agora[ii,:] = np.array(a_standard) - np.array(a_prfhrd)
+    diff_auto_pp_agora[ii,:] = np.array(a_standard) - np.array(a_pp)
+    diff_auto_pp_prfhrd_agora[ii,:] = np.array(a_prfhrd) - np.array(a_pp)
 auto_standard_agora = np.mean(autos_standard_agora, axis=0)
 auto_prfhrd_agora = np.mean(autos_prfhrd_agora, axis=0)
 auto_pp_agora = np.mean(autos_pp_agora, axis=0)
+diff_auto_mean_prfhrd_agora = np.mean(diff_auto_prfhrd_agora, axis=0) # sim mean to subtract
+diff_auto_mean_pp_agora = np.mean(diff_auto_pp_agora, axis=0) # sim mean to subtract
+diff_auto_mean_pp_prfhrd_agora = np.mean(diff_auto_pp_prfhrd_agora, axis=0) # sim mean to subtract
 
 # Get error bars from sims...
 idxs = np.arange(499)+1
@@ -118,32 +99,32 @@ for ii, idx in enumerate(idxs):
     a_pp = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
     c_pp = [c_pp[digitized == i].mean() for i in range(1, len(lbins))]
     a_in_pp = [a_in_pp[digitized == i].mean() for i in range(1, len(lbins))]
-    a_combined, c_combined, a_in_combined = btmp_combined.get_masked_spec(idx)
-    a_combined = [a_combined[digitized == i].mean() for i in range(1, len(lbins))]
-    c_combined = [c_combined[digitized == i].mean() for i in range(1, len(lbins))]
-    a_in_combined = [a_in_combined[digitized == i].mean() for i in range(1, len(lbins))]
+    #a_combined, c_combined, a_in_combined = btmp_combined.get_masked_spec(idx)
+    #a_combined = [a_combined[digitized == i].mean() for i in range(1, len(lbins))]
+    #c_combined = [c_combined[digitized == i].mean() for i in range(1, len(lbins))]
+    #a_in_combined = [a_in_combined[digitized == i].mean() for i in range(1, len(lbins))]
 
     autos_standard[ii,:] = np.array(a_standard)
     autos_prfhrd[ii,:] = np.array(a_prfhrd)
     autos_pp[ii,:] = np.array(a_pp)
-    autos_combined[ii,:] = np.array(a_combined)
+    #autos_combined[ii,:] = np.array(a_combined)
     cross_standard[ii,:] = np.array(c_standard)
     cross_prfhrd[ii,:] = np.array(c_prfhrd)
     cross_pp[ii,:] = np.array(c_pp)
-    cross_combined[ii,:] = np.array(c_combined)
+    #cross_combined[ii,:] = np.array(c_combined)
     autos_in_standard[ii,:] = np.array(a_in_standard)
     autos_in_prfhrd[ii,:] = np.array(a_in_prfhrd)
     autos_in_pp[ii,:] = np.array(a_in_pp)
-    autos_in_combined[ii,:] = np.array(a_in_combined)
+    #autos_in_combined[ii,:] = np.array(a_in_combined)
     diff_auto_prfhrd[ii,:] = np.array(a_standard) - np.array(a_prfhrd)
     diff_auto_pp[ii,:] = np.array(a_standard) - np.array(a_pp)
     diff_auto_pp_prfhrd[ii,:] = np.array(a_prfhrd) - np.array(a_pp)
-auto_std_prfhrd = np.std(diff_auto_prfhrd, axis=0)
-auto_std_pp = np.std(diff_auto_pp, axis=0)
-auto_std_pp_prfhrd = np.std(diff_auto_pp_prfhrd, axis=0)
-auto_mean_prfhrd = np.mean(diff_auto_prfhrd, axis=0) # sim mean to subtract
-auto_mean_pp = np.mean(diff_auto_pp, axis=0) # sim mean to subtract
-auto_mean_pp_prfhrd = np.mean(diff_auto_pp_prfhrd, axis=0) # sim mean to subtract
+diff_auto_std_prfhrd = np.std(diff_auto_prfhrd, axis=0)
+diff_auto_std_pp = np.std(diff_auto_pp, axis=0)
+diff_auto_std_pp_prfhrd = np.std(diff_auto_pp_prfhrd, axis=0)
+diff_auto_mean_prfhrd = np.mean(diff_auto_prfhrd, axis=0) # sim mean to subtract
+diff_auto_mean_pp = np.mean(diff_auto_pp, axis=0) # sim mean to subtract
+diff_auto_mean_pp_prfhrd = np.mean(diff_auto_pp_prfhrd, axis=0) # sim mean to subtract
 autos_mean_standard = np.mean(autos_standard, axis=0)
 cross_mean_standard = np.mean(cross_standard, axis=0)
 autos_input_mean_standard = np.mean(autos_in_standard, axis=0)
@@ -161,24 +142,25 @@ r_pp = cross_mean_pp / np.sqrt(autos_mean_pp * autos_input_mean_pp)
 plt.figure(0)
 plt.clf()
 plt.plot(np.zeros(4096),'k--',lw=0.8,dashes=(6,3))
-plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_prfhrd)) - auto_mean_prfhrd) * scal, yerr=auto_std_prfhrd * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd")
-plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_pp)) - auto_mean_pp) * scal, yerr=auto_std_pp * scal, color='darkblue', linestyle='-', label="btemplate auto diff standard - pol-only")
-plt.errorbar(bin_centers, ((np.array(auto_prfhrd) - np.array(auto_pp)) - auto_mean_pp_prfhrd) * scal, yerr=auto_std_pp_prfhrd * scal, color='forestgreen', linestyle='-', label="btemplate auto diff prfhrd - pol-only")
-plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_prfhrd_agora)) - auto_mean_prfhrd) * scal, yerr=auto_std_prfhrd * scal, color='pink', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
-plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_pp_agora)) - auto_mean_pp) * scal, yerr=auto_std_pp * scal, color='cornflowerblue', linestyle='--', label="btemplate auto diff standard - pol-only, avg 10 Agora sims", alpha=0.5)
-plt.errorbar(bin_centers, ((np.array(auto_prfhrd_agora) - np.array(auto_pp_agora)) - auto_mean_pp_prfhrd) * scal, yerr=auto_std_pp_prfhrd * scal, color='lightgreen', linestyle='--', label="btemplate auto diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
-plt.legend(loc='upper right', fontsize='medium')
+plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_prfhrd)) - diff_auto_mean_prfhrd) * scal, yerr=diff_auto_std_prfhrd * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd")
+plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_pp)) - diff_auto_mean_pp) * scal, yerr=diff_auto_std_pp * scal, color='darkblue', linestyle='-', label="btemplate auto diff standard - pol-only")
+plt.errorbar(bin_centers, ((np.array(auto_prfhrd) - np.array(auto_pp)) - diff_auto_mean_pp_prfhrd) * scal, yerr=diff_auto_std_pp_prfhrd * scal, color='forestgreen', linestyle='-', label="btemplate auto diff prfhrd - pol-only")
+plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_prfhrd_agora)) - diff_auto_mean_prfhrd) * scal, yerr=diff_auto_std_prfhrd * scal, color='pink', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_pp_agora)) - diff_auto_mean_pp) * scal, yerr=diff_auto_std_pp * scal, color='cornflowerblue', linestyle='--', label="btemplate auto diff standard - pol-only, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_prfhrd_agora) - np.array(auto_pp_agora)) - diff_auto_mean_pp_prfhrd) * scal, yerr=diff_auto_std_pp_prfhrd * scal, color='lightgreen', linestyle='--', label="btemplate auto diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
+plt.legend(loc='upper right', fontsize='x-small')
 plt.xscale('log')
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$\Delta C_\ell^{BB} / 10^{-8}$")
 plt.xlim(10,2000)
+plt.ylim(-25,24)
 plt.savefig('figs/btemplates_data_spec_diff.png',bbox_inches='tight')
 
 # Diff vs correlation coefficient
 #plt.figure(0)
 #plt.clf()
-#plt.scatter(((np.array(auto_standard) - np.array(auto_prfhrd)) - auto_mean_prfhrd) * scal, r_prfhrd, color='firebrick', linestyle='-', label="prfhrd", s=10)
-#plt.scatter(((np.array(auto_standard) - np.array(auto_pp)) - auto_mean_pp) * scal, r_pp, color='darkblue', linestyle='-', label="pol-only", s=10)
+#plt.scatter(((np.array(auto_standard) - np.array(auto_prfhrd)) - diff_auto_mean_prfhrd) * scal, r_prfhrd, color='firebrick', linestyle='-', label="prfhrd", s=10)
+#plt.scatter(((np.array(auto_standard) - np.array(auto_pp)) - diff_auto_mean_pp) * scal, r_pp, color='darkblue', linestyle='-', label="pol-only", s=10)
 #plt.scatter(np.zeros_like(auto_standard), r_std, color="gray", label="standard", s=10)
 #plt.axhline(0, color="darkgray", lw=1, linestyle="--")
 #plt.axvline(0, color="darkgray", lw=1, linestyle="--")
@@ -190,12 +172,14 @@ plt.savefig('figs/btemplates_data_spec_diff.png',bbox_inches='tight')
 #plt.savefig('figs/btemplates_correlation_coeff_vs_data_spec_diff.png',bbox_inches='tight')
 
 # Get the chi-squared
-#diff_vec = (np.array(auto_standard) - np.array(auto_prfhrd)) - auto_mean_prfhrd
+diff_vec = diff_auto_mean_prfhrd_agora - diff_auto_mean_prfhrd
+diff_cov = np.cov(diff_auto_prfhrd, rowvar=False) / 10
+#diff_vec = (np.array(auto_standard) - np.array(auto_prfhrd)) - diff_auto_mean_prfhrd
 #diff_cov = np.cov(diff_auto_prfhrd, rowvar=False)
-#diff_vec = (np.array(auto_standard) - np.array(auto_pp)) - auto_mean_pp
+#diff_vec = (np.array(auto_standard) - np.array(auto_pp)) - diff_auto_mean_pp
 #diff_cov = np.cov(diff_auto_pp, rowvar=False)
-diff_vec = (np.array(auto_prfhrd) - np.array(auto_pp)) - auto_mean_pp_prfhrd
-diff_cov = np.cov(diff_auto_pp_prfhrd, rowvar=False)
+#diff_vec = (np.array(auto_prfhrd) - np.array(auto_pp)) - diff_auto_mean_pp_prfhrd
+#diff_cov = np.cov(diff_auto_pp_prfhrd, rowvar=False)
 inv_diff_cov = np.linalg.inv(diff_cov)
 chi_sq = float(np.real(diff_vec.T @ inv_diff_cov @ diff_vec))
 print('chi-squared: ', chi_sq)
@@ -213,15 +197,43 @@ plt.colorbar(label="correlation")
 plt.title("correlation matrix of diff bins")
 plt.savefig('figs/btemplates_data_spec_diff_corr_matrix.png',bbox_inches='tight')
 
+#bt_standard_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500/btmpl_alm_0001.fits')
+#bt_standard_sim1 = hp.almxfl(bt_standard_sim1, bl)
+#bt_standard_sim1_map = hp.alm2map(bt_standard_sim1,nside=nside)
+#bt_prfhrd_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_prfhrd/btmpl_alm_0001.fits')
+#bt_prfhrd_sim1 = hp.almxfl(bt_prfhrd_sim1, bl)
+#bt_prfhrd_sim1_map = hp.alm2map(bt_prfhrd_sim1,nside=nside)
+#bt_pp_sim1 = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_pp/btmpl_alm_0001.fits')
+#bt_pp_sim1 = hp.almxfl(bt_pp_sim1, bl)
+#bt_pp_sim1_map = hp.alm2map(bt_pp_sim1,nside=nside)
+#diff_sim1 = bt_standard_sim1_map - bt_prfhrd_sim1_map
+#diff_sim1_pp = bt_standard_sim1_map - bt_pp_sim1_map
+
+bt_standard = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500/btmpl_alm_%04d.fits'%didx)
+bt_standard = hp.almxfl(bt_standard, bl)
+bt_standard_map = hp.alm2map(bt_standard,nside=nside)
+bt_prfhrd = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_prfhrd/btmpl_alm_%04d.fits'%didx)
+bt_prfhrd = hp.almxfl(bt_prfhrd, bl)
+bt_prfhrd_map = hp.alm2map(bt_prfhrd,nside=nside)
+#bt_pp = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/sqe_lmaxT3500_pp/btmpl_alm_%04d.fits'%didx)
+#bt_pp = hp.almxfl(bt_pp, bl)
+#bt_pp_map = hp.alm2map(bt_pp,nside=nside)
+#bt_combined = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_cib_qe_pr3_cib_pr4_kappa_standard//btmpl_alm_%04d.fits'%didx)
+#bt_combined = hp.almxfl(bt_combined, bl)
+#bt_combined_map = hp.alm2map(bt_combined,nside=nside)
+diff = bt_standard_map - bt_prfhrd_map
+#diff_pp = bt_standard_map - bt_pp_map
+#diff_pp_prfhrd = bt_prfhrd_map - bt_pp_map
+
 ##### ABHI'S CODE #####
 plt.clf()
 
 # Display map with apodization visible
-disp = diff_pp_prfhrd * mask
+#disp = diff_pp_prfhrd * mask
 #disp = diff_sim1_pp * mask
 #disp = diff_pp * mask
 #disp = diff_sim1 * mask
-#disp = diff * mask
+disp = diff * mask
 #disp = bt_standard_map * mask
 disp[mask == 0] = hp.UNSEEN   # only zero-mask outside is hidden
 
@@ -289,20 +301,20 @@ im = ax.get_images()[0]
 cbar = plt.colorbar(im, orientation='vertical', fraction=0.05, pad=0.07)
 #cbar.set_label(r'$y \times 10^6$', fontsize=14)
 
-plt.title(r"Lensing Template Difference Profile Hardened - Pol-Only", fontsize=14)
+#plt.title(r"Lensing Template Difference Profile Hardened - Pol-Only", fontsize=14)
 #plt.title(r"Lensing Template Difference Standard - Pol-Only, Sim 1", fontsize=14)
 #plt.title(r"Lensing Template Difference Standard - Pol-Only", fontsize=14)
 #plt.title(r"Lensing Template Difference Standard - Profile Hardened, Sim 1", fontsize=14)
-#plt.title(r"Lensing Template Difference Standard - Profile Hardened", fontsize=14)
+plt.title(r"Lensing Template Difference Standard - Profile Hardened", fontsize=14)
 #plt.title(r"Lensing Template Standard", fontsize=14)
 
 # Tight layout and save
 plt.tight_layout()
-plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_diff_pp_prfhrd.png", dpi=300, bbox_inches='tight')  # Save high-res
+#plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_diff_pp_prfhrd.png", dpi=300, bbox_inches='tight')  # Save high-res
 #plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_diff_pp_sim1.png", dpi=300, bbox_inches='tight')  # Save high-res
 #plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_diff_pp.png", dpi=300, bbox_inches='tight')  # Save high-res
 #plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_diff_sim1.png", dpi=300, bbox_inches='tight')  # Save high-res
-#plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_diff.png", dpi=300, bbox_inches='tight')  # Save high-res
+plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_diff.png", dpi=300, bbox_inches='tight')  # Save high-res
 #plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_data_map_standard.png", dpi=300, bbox_inches='tight')  # Save high-res
 
 

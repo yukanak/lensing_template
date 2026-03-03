@@ -1,0 +1,95 @@
+base:
+    dir_healqest: '/home/users/yukanaka/healqest/'
+    version     : '052425'
+    dir_sptsoft : '/home/users/yukanaka/spt3g_software/'
+    config      : '/home/users/yukanaka/healqest/pipeline/spt3g_20192020/yuka_misc_scripts/main_xover_052425_crosstf_yuka.yaml'
+    runname     : 'sqe052425'
+    specname    : 'lmax3500'
+    dir_healpix : '/home/users/yukanaka/miniconda3/envs/tora_py3/Healpix_3.83/'
+    dir_spice   : '/home/users/yukanaka/PolSpice_v03-08-03/bin/spice'
+
+cls:
+    file_ucmb   : '/home/users/yukanaka//healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lenspotentialCls.dat'
+    file_lcmb   : '/home/users/yukanaka//healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lensedCls.dat'
+    file_gcmb   : '/home/users/yukanaka//healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_gradlensedCls.dat'
+
+cinv:
+    nside       : 2048
+    lmax        : 4096
+    lmin        : 350
+    mmin        : 100
+    eps_min     : 1.0e-5
+    dir_tmp     : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/tmp_{seed}_{cmbset}/'
+    file_mask   : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits'
+    file_cambcls: '/home/users/yukanaka//healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lensedCls.dat'
+    file_alm    : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/xilc_inputs_precinv/data_tqu1_agora0.7_datamatched_mcmccal_0707231033_Coadd_allfields_{ilctype}_seed{seed:04}_withsignflipnoise_2dilc_crosstf_full_052425_notf.npz'
+    #file_noisefg  : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/ilc/cmb/noisefg/noisefg_tqu1_agora0.7_datamatched_mcmccal_0707231033_Coadd_allfields_{ilctype}_seed{seed:04}_withsignflipnoise_2dilc_crosstf_full_021125.npz'
+    file_beam : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/beam/beam_musev4normedafter_v41.npz'
+    #file_noisefg : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/ilc/cls_noisefg_{mode}_2dilc_beamtfconvolved.npy'
+    file_noisefg : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/ilc/cls_noisefg_{mode}_2dilc_beamtfconvolved_{ilctype}.npy'
+    notch : #'/lcrc/project/SPT3G/analysis/eete+lensing_19-20/transfer_function/eete_alm_mask.fits'
+    nlev_t : 7.5
+    nlev_p : 4.5
+    ninv_t : 1.00
+    ninv_p : 1.00
+    ninv_fac_t : 0.97
+    ninv_fac_p : 1.0
+    scal_res_t : 1.0
+    scal_res_p : 1.0
+    eps_t  : 1.0e-5
+    eps_p  : 1.0e-6
+    datafudge: False
+    ellscale: False
+    pmask_t: '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask4096_inverse_1500d_eetelensing-1920_mapmaking_mask_list_fluxcut6mJy_clusterSNcut10_badclusremoved_optimized_plus0.25arcmin.fits'
+    pmask_p: '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask4096_inverse_1500d_eetelensing-1920_mapmaking_mask_list_fluxcut6mJy_clusterSNcut10_poldetected.fits'
+    file_out_sTP: '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/cinv_stp_{ilctype}_v5_aggcinv_crosstf_measninvps_optimizedinp/tqu{cmbset}_nside{nside}_lmin{lmin}_lmax{lmax}_mmin{mmin}_{runname}_seed{seed}_ananinv_v3_highninv_2dcinv_binmaskcinv_v3_notf_Ttol5e-4_v4.npz'
+
+lensrec:
+    rectype: 'sqe' #'gmvxilc' #'gmvjtp_sep' #'gmvxilc' # [sqe,gmv,mh,xilc,gmvph]
+    cltype : 'gcmb'
+    Lmax   : 4000
+    lminT  : 500
+    lmaxT  : 3500
+    lminE  : 500
+    lmaxE  : 3000
+    lminB  : 500
+    lmaxB  : 3000
+    nside  : 2048
+    mmin   : 100
+    apply_emmtf: False
+    pstf   : #'/home/users/yukanaka/healqest/pipeline/spt3g_20192020/src/cinv_psfilt.alm'
+    notch  : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/eete_alm_mask.fits'
+    mask   : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense_squared.fits'
+    dir_out : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/{runname}/{rectype}/crosstf_v5_lmin{lminT}_{lminE}_{lminB}_lmax{lmaxT}_{lmaxE}_{lmaxB}_mmin{mmin}_binmaskcinv_notch_softinner_mtheta3_v4/'
+
+inputs:
+    phi_in    : '/lcrc/project/SPT3G/users/ac.yomori/sims/planck2018_cmb_v2/unl/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_cambphiG_phi1_seed{seed}.alm'
+    kappa_in  : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/inputkappa/inkappa_bmask3_seed{seed}.alm'
+
+pspec:
+    dir_tmp      : '/tmp/'
+    mask_boundary : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits'
+    mask_analysis    : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense_1500d_eetelensing-1920_mapmaking_mask_list_fluxcut6mJy_clusterSNcut10_dense_bmask2.fits'
+    nlmax        : 4000
+    nside        : 2048
+    thetamax     : 30
+    apodizesigma : 20
+    apodizetype  : 1
+    subav        : 'YES'
+    psname       : 'mfxxonly_mfsplit'
+
+like:
+    nsims1      : 498       # Number of sims for xx,N0,RDN0
+    nsims2      : 248       # Number of sims for N1
+    Lmin        : 24        # Lmin
+    Lmax        : 3000      # Lmax
+    nbins       : 18        # Number of bins
+
+    # Fiducial Cls without ell factors
+    fid_cls     : '/lcrc/project/SPT3G/users/ac.yomori/repo/spt3g_software_base/spt3g_software_051223/scratch/yomori/midell/sims/lensed_cmb/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_rawCls.pickle'
+
+    # Random string that determines the blinding factor
+    blind_str   : 'london'
+
+    # Output likelihood file
+    dir_like    : '/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/{runname}/{rectype}/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/clkk_polspice_mfxxonly_mfsplit_nops/'

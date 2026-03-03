@@ -2,22 +2,26 @@
 #SBATCH --job-name=btemp
 #SBATCH --time=1:00:00
 #SBATCH --partition=kipac
-#SBATCH --array=1-10
+#SBATCH --array=5001-5010,1-500
 #SBATCH -N 1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=256G
-##SBATCH --dependency=afterok:15187819_5001
+##SBATCH --dependency=afterok:16473446_499
 
-#~/lensing_template/gen_btemplate.py bt_gmv3500.yaml $SLURM_ARRAY_TASK_ID
-#~/lensing_template/gen_btemplate.py bt_gmv3500_prfhrd.yaml $SLURM_ARRAY_TASK_ID
-#~/lensing_template/gen_btemplate.py bt_gmv3500_pp.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_prfhrd.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_pp.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_agoraGfgs.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_agoraGfgs_prfhrd.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_agoralcmbonly.yaml $SLURM_ARRAY_TASK_ID
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_gaussianlcmbonly.yaml $SLURM_ARRAY_TASK_ID
 #python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_prfhrd.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
 #python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_pp.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
 #python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_lenz.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
-#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_agoraGfgs.yaml $SLURM_ARRAY_TASK_ID
-#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_agoraGfgs_lmax1000.yaml $SLURM_ARRAY_TASK_ID
 #python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_pr3_cib_pr4_kappa_prfhrd.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
+#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_pr3_cib_pr4_kappa_pp.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
 #python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_combined_agora545_cib.yaml $SLURM_ARRAY_TASK_ID --combined_tracer
-#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_gaussianlcmbonly.yaml $SLURM_ARRAY_TASK_ID
-#python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_agoralcmbonly.yaml $SLURM_ARRAY_TASK_ID
-python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_temp.yaml $SLURM_ARRAY_TASK_ID
+python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_prfhrd_Lmin200.yaml $SLURM_ARRAY_TASK_ID
+python3 ~/lensing_template/gen_btemplate.py bt_gmv3500_agoraGfgs_prfhrd_Lmin200.yaml $SLURM_ARRAY_TASK_ID

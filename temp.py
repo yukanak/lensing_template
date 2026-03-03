@@ -11,99 +11,142 @@ import btemplate as bt
 sys.path.append('/home/users/yukanaka/healqest/healqest/src/')
 import healqest_utils as utils
 
-nside = 2048
-lmax = 2000
-l = np.arange(lmax+1)
-clfile_path = '/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lenspotentialCls.dat'
-ell,sltt,slee,slbb,slte,slpp,sltp,slep = utils.get_unlensedcls(clfile_path,lmax)
-clkk = slpp * (l*(l+1))**2/4
-mask = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits")
-yaml_file = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
-btmp = bt.btemplate(yaml_file,combined_tracer=True)
-# CIB map
-klm2_map = hp.read_map("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/COM_CompMap_CIB-GNILC-F545_2048_R2.00.fits")
-rot = hp.Rotator(coord=['G','C'])
-klm2_map = rot.rotate_map_pixel(klm2_map)
-klm2_map *= mask * 1e6 / 58.04
-klm2 = hp.map2alm(klm2_map, lmax=lmax)
-# SPT3G QE
-klm1 = btmp.get_debiased_klm(0)
-klm1 = utils.reduce_lmax(klm1, lmax=lmax)
-# auto and cross
-clii1 = hp.alm2cl(klm1)
-clii2 = hp.alm2cl(klm2)
-clii12 = hp.alm2cl(klm1,klm2)
-# does it match what I had in sims?
-klm2_map = hp.read_map('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/pr3_cib_pr4_kappa_tracer/cib_tracer_seed1.fits')
-klm2_map *= mask
-klm2 = hp.map2alm(klm2_map, lmax=lmax)
-klm1 = btmp.get_debiased_klm(1)
-klm1 = utils.reduce_lmax(klm1, lmax=lmax)
-clii1_sim1 = hp.alm2cl(klm1)
-clii2_sim1 = hp.alm2cl(klm2)
-clii12_sim1 = hp.alm2cl(klm1,klm2)
+l = np.arange(0,4096+1)
+ell, sltt, slee, slbb, slte, slpp, sltp, slep = np.loadtxt('/home/users/yukanaka/healqest/healqest/camb/planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_lenspotentialCls.dat', unpack=True)
+slpp = slpp / ell / ell / (ell + 1) / (ell + 1) * 2 * np.pi
+slpp = np.insert(slpp, 0, 0)
+slpp = np.insert(slpp, 0, 0)
+clkk = slpp[:4097] * (l*(l+1))**2/4
+lmax = 4096
+bins = np.logspace(np.log10(30), np.log10(4000), 51)
+digitized = np.digitize(np.arange(6144), bins)
+bin_centers = (bins[:-1] + bins[1:]) / 2
+yaml_file = 'bt_gmv3500.yaml'
+yaml_file_standard_gaussianlcmbonly = 'bt_gmv3500_gaussianlcmbonly.yaml'
+btmp = bt.btemplate(yaml_file)
+btmp_standard_gaussianlcmbonly = bt.btemplate(yaml_file_standard_gaussianlcmbonly)
+mask = hp.read_map(btmp.maskfname)
+fsky = np.sum(mask**2)/mask.size
+nside = btmp.nside
 
-rho = clii12/np.sqrt(clii1*clii2)
-print('rho, data: ',np.mean(rho[50:200]))
-rho = clii12_sim1/np.sqrt(clii1_sim1*clii2_sim1)
-print('rho, sim1: ',np.mean(rho[50:200]))
+N = 499
+auto = 0
+cross = 0
+auto_in = 0
+auto_reprocessed = 0
+cross_reprocessed = 0
+auto_in_reprocessed = 0
+#for i in np.arange(1)+1:
+for i in np.arange(N)+1:
+    #a_standard, c_standard, a_in_standard = btmp.get_masked_spec(i, recompute=True, savefile=False)
+    print(i)
+    fname = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500/btmpl_specs_{i:04d}.npz'
+    tmp = np.load(fname)
+    auto += tmp['auto']
+    cross += tmp['cross']
+    auto_in += tmp['auto_in']
+    fname = f'/scratch/users/yukanaka/temp/btemps/btmpl_specs_{i:04d}.npz'
+    tmp = np.load(fname)
+    auto_reprocessed += tmp['auto']
+    cross_reprocessed += tmp['cross']
+    auto_in_reprocessed += tmp['auto_in']
+#a_oldplm, c_oldplm, a_in_oldplm = btmp_OLD.get_masked_spec(1)
+auto /= N
+cross /= N
+auto_in /= N
+auto_reprocessed /= N
+cross_reprocessed /= N
+auto_in_reprocessed /= N
 
-#=============================================================================#
-fsky = np.mean(mask**2)
-# try crossing Agora CIB realization at 545 GHz with Agora GMV reconstructed kappa
-agora_cib_map = hp.read_map('/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/agora_len_mag_cibmap_planck_545ghz_nside2048.fits')
-agora_cib_map *= mask * 1 / 58.04
-klm1 = btmp.get_debiased_klm(5001)
-klm1 = utils.reduce_lmax(klm1, lmax=lmax)
-klm1_map = hp.alm2map(klm1,nside)
-#agora_cib_cross_recon_qe = hp.alm2cl(klm1,agora_cib) * np.mean(mask) # FSKY (but this makes no sense?)
-agora_cib_cross_recon_qe = hp.anafast(agora_cib_map,klm1_map)/fsky
-# INPUT KAPPA FOR AGORA
-klm_input_agora = hp.almxfl(hp.read_alm(f'/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/agora_spt3g_input_plm_lmax4096.fits'),(np.arange(4096+1)*(np.arange(4096+1)+1))/2)
-#klm_input_agora = utils.reduce_lmax(klm_input_agora, lmax=lmax)
-klm_input_agora_map = hp.alm2map(klm_input_agora,nside)
-#hp.write_map(f"/oak/stanford/orgs/kipac/users/yukanaka/agora_sims/agora_spt3g_input_kappa_map_nside{nside}.fits", klm_input_agora_map)
-klm_input_agora_map *= mask
-#agora_cib_cross_input_klm = hp.alm2cl(klm_input_agora,agora_cib) * np.mean(mask**2)**2
-#agora_recon_qe_cross_input_klm = hp.alm2cl(klm_input_agora,klm1) / np.mean(mask)
-agora_cib_cross_input_klm = hp.anafast(agora_cib_map,klm_input_agora_map)/fsky
-agora_recon_qe_cross_input_klm = hp.anafast(klm1_map,klm_input_agora_map)/fsky
-agora_input_klm = hp.anafast(klm_input_agora_map,klm_input_agora_map)/fsky
-agora_cib = hp.anafast(agora_cib_map,agora_cib_map)/fsky
-# BKSPT clii
-cib = np.load("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/patches_cibxkap_cibauto_clkk.npz")
-clik_bkspt = np.nanmean(cib['cibxkap'], axis=0) * (1e6/58.04) # MJy/sr -> uK_CMB
-clii_bkspt = np.nanmean(cib['cibauto'], axis=0) * (1e6/58.04)**2 # MJy/sr -> uK_CMB
+# BIN
+auto = np.array([auto[digitized == i].mean() for i in range(1, len(bins))])
+cross = np.array([cross[digitized == i].mean() for i in range(1, len(bins))])
+auto_in = np.array([auto_in[digitized == i].mean() for i in range(1, len(bins))])
+auto_reprocessed = np.array([auto_reprocessed[digitized == i].mean() for i in range(1, len(bins))])
+cross_reprocessed = np.array([cross_reprocessed[digitized == i].mean() for i in range(1, len(bins))])
+auto_in_reprocessed = np.array([auto_in_reprocessed[digitized == i].mean() for i in range(1, len(bins))])
+
+# TO INVESTIGATE SAMPLE VARIANCE, take sets of 10 of the Gaussian set
+Nsims, Nbins = 499,len(bins)-1
+group_size = 10
+Ngroups = 49 #Nsims // group_size
+Nuse = Ngroups * group_size
+# Gaussian sims now for comparison
+idxs = np.arange(499)+1
+auto_standard = np.zeros((len(idxs),len(bins)-1),dtype=np.complex_)
+cross_standard = np.zeros((len(idxs),len(bins)-1),dtype=np.complex_)
+for ii, idx in enumerate(idxs):
+    print(idx)
+    a_standard, c_standard, a_in_standard = btmp.get_masked_spec(idx)
+    auto_standard[ii,:] = [a_standard[digitized == i].mean() for i in range(1, len(bins))]
+    cross_standard[ii,:] = [c_standard[digitized == i].mean() for i in range(1, len(bins))]
+auto_mean_standard_gaussian = np.mean(auto_standard, axis=0)
+auto_var_standard_gaussian = np.var(auto_standard, axis=0)
+cross_mean_standard_gaussian = np.mean(cross_standard, axis=0)
+cross_var_standard_gaussian = np.var(cross_standard, axis=0)
+# randomize so groups aren't "seed 1-10, 11-20, ..."
+rng = np.random.default_rng(0)
+perm = rng.permutation(Nsims)[:Nuse]
+auto_use = auto_standard[perm] # (Nuse, Nbins)
+cross_use = cross_standard[perm] # (Nuse, Nbins)
+# reshape into groups and take group means
+auto_groups = auto_use.reshape(Ngroups, group_size, Nbins)
+auto_mean10 = auto_groups.mean(axis=1) # (Ngroups, Nbins)
+cross_groups = cross_use.reshape(Ngroups, group_size, Nbins)
+cross_mean10 = cross_groups.mean(axis=1) # (Ngroups, Nbins)
+# scatter of 10-sim means (this is the "error bar on a 10-sim mean")
+auto_sigma10 = auto_mean10.std(axis=0)
+cross_sigma10 = cross_mean10.std(axis=0)
 #=============================================================================#
 
 # plot
 plt.figure(0)
 plt.clf()
-plt.plot(l, clkk, 'k', label='Fiducial $C_L^{\kappa\kappa}$')
-plt.plot(l, agora_cib_cross_recon_qe[:lmax+1], color='lightcoral', alpha=0.8, label='agora cib x agora recon qe')
-plt.plot(l, agora_cib_cross_input_klm[:lmax+1], color='lightgreen', alpha=0.8, label='agora cib x agora input klm')
-plt.plot(l, agora_recon_qe_cross_input_klm[:lmax+1], color='slateblue', alpha=0.8, label='agora input klm x agora recon qe')
-plt.plot(l, agora_input_klm[:lmax+1], color='orange', alpha=0.8, label='agora input klm auto')
-plt.plot(l, agora_cib[:lmax+1], color='magenta', alpha=0.8, label='agora cib auto')
-plt.plot(l[:1501], clii_bkspt[:1501], color='violet', linestyle='--', alpha=0.8, label='BKSPT clii')
-plt.plot(l[:1501], clik_bkspt[:1501], color='silver', linestyle='--', alpha=0.8, label='BKSPT clik')
-plt.yscale('log')
-#plt.axhline(y=1, color='gray', linestyle='--')
-#plt.plot(l, agora_cib_cross_recon_qe/clkk, color='lightcoral', alpha=0.8, label='agora cib x agora recon qe / fid clkk')
-#plt.plot(l, agora_cib_cross_input_klm/clkk, color='lightgreen', alpha=0.8, label='agora cib x agora input klm / fid clkk')
-#plt.plot(l, agora_recon_qe_cross_input_klm/clkk, color='slateblue', alpha=0.8, label='agora input klm x agora recon qe / fid clkk')
-#plt.plot(l, clii1/clii1_sim1, color='lightgreen', alpha=0.8, label='clii1 data / sim 1')
-#plt.plot(l, clii2/clii2_sim1, color='lightcoral', alpha=0.8, label='clii2 data / sim 1')
-#plt.plot(l, clii12/clii12_sim1, color='slateblue', alpha=0.8, label='clii12 data / sim 1')
-#plt.ylim(0.5,1.5)
-#plt.ylim(-1,2)
-#plt.ylim(0,0.3)
-plt.grid(True, linestyle="--", alpha=0.5)
-plt.xlabel('$\ell$')
-plt.legend(loc='lower left', fontsize='small')
+#for i in np.arange(499)+1:
+#    fname = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500/btmpl_specs_{i:04d}.npz'
+#    tmp = np.load(fname)['auto']
+#    plt.plot(bin_centers, np.array([tmp[digitized == i].mean() for i in range(1, len(bins))]), color='lightgray', alpha=0.3, linestyle='-')
+#for i in range(49):
+#    if i == 0:
+#        #plt.errorbar(bin_centers, cross_mean10[i,:], yerr=cross_sigma10, color='lightgray', alpha=0.3, linestyle='-',label='btemplate x input B cross, standard, 10 Gaussian sims')
+#        plt.plot(bin_centers, cross_mean10[i,:], color='lightgray', alpha=0.3, linestyle='-',label='btemplate x input B cross, standard, 10 Gaussian sims')
+#    else:
+#        #plt.errorbar(bin_centers, cross_mean10[i,:], yerr=cross_sigma10, color='lightgray', alpha=0.3, linestyle='-')
+#        plt.plot(bin_centers, cross_mean10[i,:], color='lightgray', alpha=0.3, linestyle='-')
+# error band = expected scatter of a 10-sim mean
+plt.fill_between(bin_centers,cross_mean_standard_gaussian-cross_sigma10,cross_mean_standard_gaussian+cross_sigma10,color='firebrick',alpha=0.3,label=r'$\pm 1\sigma$ (10-sim mean)')
+
+plt.plot(bin_centers, auto[:lmax+1], color='firebrick', linestyle='-', label=f'btemplate auto, avg sims 1-499')
+plt.plot(bin_centers, cross[:lmax+1], color='darkblue', linestyle='-', label=f'btemplate x input B cross, avg sims 1-499')
+
+plt.plot(bin_centers, auto_in[:lmax+1], color='forestgreen', linestyle='-', label=f'input B auto, avg sims 1-499')
+plt.plot(bin_centers, auto_in_reprocessed[:lmax+1], color='olive', linestyle='--', label=f'input B auto, avg sims 1-499, reprocessed')
+
+plt.plot(bin_centers, auto_reprocessed[:lmax+1], color='salmon', linestyle='--', label='btemplate auto, avg sims 1-499, reprocessed')
+plt.plot(bin_centers, cross_reprocessed[:lmax+1], color='cornflowerblue', linestyle='--', label='btemplate x input B cross, avg sims 1-499, reprocessed')
+
 plt.xscale('log')
-plt.xlim(10,2000)
-plt.tight_layout()
+plt.yscale('log')
+plt.xlim(10,lmax)
+plt.ylim(3e-7,1.2e-6)
+plt.legend(loc='lower left', fontsize='small')
+plt.title(f'btemplate check')
+plt.ylabel("$C_\ell^{BB}$")
+plt.xlabel('$\ell$')
+plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
+
+plt.figure(0)
+plt.clf()
+plt.axhline(y=1, color='gray', alpha=0.5, linestyle='--')
+plt.plot(bin_centers, (auto_reprocessed/auto), color='firebrick', linestyle='--', alpha=0.8, label=f'btemplate auto, avg sims 1-499 reprocessed / orig')
+plt.plot(bin_centers, (cross_reprocessed/cross), color='darkblue', linestyle='--', alpha=0.8, label=f'btemplate x input B cross, avg sims 1-499 reprocessed / orig')
+plt.plot(bin_centers, (auto_in_reprocessed/auto_in), color='forestgreen', linestyle='--', alpha=0.8, label=f'input B auto, avg sims 1-499 reprocessed / orig')
+plt.xscale('log')
+plt.xlim(10,lmax)
+plt.ylim(0.95,1.3)
+plt.legend(loc='lower left', fontsize='small')
+plt.title(f'btemplate check')
+plt.xlabel('$\ell$')
 plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
 
 

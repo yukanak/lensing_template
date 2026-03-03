@@ -89,52 +89,32 @@ def random_grid_search(rhos1_base,rhos2_base,bin_edges,btmp,klm1,klm2,
         "weights2_L": None,
     }
 
-    # baseline (all ones)
-    A1_center = np.ones(nbins)
-    A2_center = np.ones(nbins)
+    # Base c_i(L) coefficients (can be negative)
+    c1_base = rhos1_base * sqrt_kk_over_ii1
+    c2_base = rhos2_base * sqrt_kk_over_ii2
 
     for t in range(n_draws):
-        # Step 1: draw from prior around 1
-        '''
+        # Step 1: tune multiplicative scalings of c_i directly (no normalization)
+        # draw lognormal scalings per bin (A > 0)
         if tune_A1:
-            # draw vector of length nbins where each element is an independent
-            # Gaussian number A_i ~ N(1,sigma(A)^2)
-            # samples from a normal distribution: loc=mean, scale=standard deviation, size=output shape
-            #A1_bins = rng.normal(loc=1.0, scale=sigma_A1, size=nbins)
-            # ENFORCE NON-NEGATIVITY + normalize later so that we enforce rhos_L in [0,1]
-            # sample in log space to enforce non-negativity
-            # A > 0 always (log-normal around 1)
             logA1_bins = rng.normal(loc=0.0, scale=sigma_A1, size=nbins)
             A1_bins = np.exp(logA1_bins)
-
         else:
-            A1_bins = A1_center.copy()
-
+            A1_bins = np.ones(nbins)
+        
         if tune_A2:
-            #A2_bins = rng.normal(loc=1.0, scale=sigma_A2, size=nbins)
             logA2_bins = rng.normal(loc=0.0, scale=sigma_A2, size=nbins)
             A2_bins = np.exp(logA2_bins)
         else:
-            A2_bins = A2_center.copy()
-        '''
-        # one dof per bin: ratio R = A1/A2  (always > 0)
-        logR_bins = rng.normal(loc=0.0, scale=sigma_A1, size=nbins)
-        R_bins = np.exp(logR_bins)
-
-        # Expand to full L weights
-        rhos1_L = apply_bin_scalings_to_weights(rhos1_base, bin_edges, R_bins, lmax)
-        rhos2_L = apply_bin_scalings_to_weights(rhos2_base, bin_edges, np.ones_like(R_bins), lmax)
-        #rhos1_L = apply_bin_scalings_to_weights(rhos1_base, bin_edges, A1_bins, lmax)
-        #rhos2_L = apply_bin_scalings_to_weights(rhos2_base, bin_edges, A2_bins, lmax)
-
-        # THIS NORMALIZATION GUARANTEES rhos1_L and rhos2_L in [0,1] AND SUM TO 1
-        rhos1_L = np.maximum(0.0, rhos1_L)
-        rhos2_L = np.maximum(0.0, rhos2_L)
-        denominator = rhos1_L + rhos2_L; denominator[denominator == 0] = 1.0 # avoid divide by zero
-        rhos1_L = rhos1_L / denominator
-        rhos2_L = rhos2_L / denominator
-        weights1_L = rhos1_L * sqrt_kk_over_ii1
-        weights2_L = rhos2_L * sqrt_kk_over_ii2
+            A2_bins = np.ones(nbins)
+        
+        # expand to L
+        A1_L = expand_bins_to_L(bin_edges, A1_bins, lmax)
+        A2_L = expand_bins_to_L(bin_edges, A2_bins, lmax)
+        
+        # tuned coefficients
+        weights1_L = c1_base * A1_L
+        weights2_L = c2_base * A2_L
 
         # Evaluate
         a_pow = score(weights1_L=weights1_L,weights2_L=weights2_L,btmp=btmp,klm1=klm1,klm2=klm2,idxs=idxs)

@@ -23,12 +23,16 @@ print(idx)
 # NOTE: change below
 #yaml_file = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
 yaml_file = 'bt_gmv3500_combined_agora545_cib.yaml'
+#yaml_file = 'bt_gmv3500_combined.yaml'
+#yaml_file = 'bt_gmv3500_combined_lenz.yaml'
 btmp = bt.btemplate(yaml_file,combined_tracer=True)
 lmax = btmp.lmax_b
 l = np.arange(lmax+1)
 li = np.arange(2,lmax+1)
 nside = btmp.nside
 weightsdir = btmp.combined_tracer_weights_dir
+#weights1 = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/lenz_cib_pr4_kappa_standard/weights_from_sims/klm1_weight_avg.npy')
+#weights2 = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/lenz_cib_pr4_kappa_standard/weights_from_sims/klm2_weight_avg.npy')
 weights1 = np.load(weightsdir+'/klm1_weight.npy')
 weights2 = np.load(weightsdir+'/klm2_weight.npy')
 cib_tracer_dir = btmp.cib_tracer_dir

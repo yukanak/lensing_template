@@ -8,14 +8,12 @@ e_yaml: "/home/users/yukanaka/lensing_template/lowell_v3mocks_musebeamv41.yaml"
 phi:
   dir_phi: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/%s/"
   dir_resp: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/%s/" #GMV/"
-  #dir_phi: "/lcrc/project/SPT3G/users/ac.yomori/projects/spt3g_lensing_20192020/lensrec/081024/gmvjtp/autotf_v2_lmint350_lminp350_lmaxt3500_lmaxp3500_mmin100_aggcinv/%s/" #GMV/"
-  #dir_resp: "/lcrc/project/SPT3G/users/ac.yomori/projects/spt3g_lensing_20192020/lensrec/081024/gmvjtp/autotf_v2_lmint350_lminp350_lmaxt3500_lmaxp3500_mmin100_aggcinv_noinpaint/%s/" #GMV/"
   qe: "GMV"   #'GMVbhTTprf'
   san0fname: "SAN0_array_%s_spice_nrm.npy"
   rdn0fname: "RDN0_%s_%i.npy"
-  dir_combined_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracers/combined_qe_agora545_cib_tracer/"
-  dir_cib_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/agora545_cib_tracer/"
-  combined_tracer_weights_dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/combined_qe_agora545_cib_tracer/'
+  dir_cib_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/agora545_cib_agora_kappa/"
+  dir_combined_tracer: "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracers/agora545_cib_agora_kappa_standard/"
+  combined_tracer_weights_dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/agora545_cib_agora_kappa_standard/'
 
 cinve:
   dir_cinve: "cinv_output_test_uncorr/"
@@ -37,8 +35,8 @@ masks:
 #  tebinfanem:
 
 outputs:
-  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_cib_qe_agora545_cib_standard/tuned/'
-  #dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_cib_qe_agora545_cib_standard/'
+  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_agora545_cib_agora_kappa_standard/tuned/'
+  #dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_agora545_cib_agora_kappa_standard/'
   btpl_fname: 'btmpl_alm_%04d.fits'
   btpl_spec_fname: 'btmpl_specs_%04d.npz'
   btpl_pure_spec_fname: 'btmpl_pure_specs_%04d.npz'

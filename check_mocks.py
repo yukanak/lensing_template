@@ -103,70 +103,61 @@ plt.savefig(f'/home/users/yukanaka/lensing_template/figs/temp.png',bbox_inches='
 #=============================================================================#
 # check mocks, plms
 yaml_file = 'bt_gmv3500.yaml'
-yaml_file_temp = 'bt_gmv3500_temp.yaml'
-yaml_file_standard_gaussianlcmbonly = 'bt_gmv3500_gaussianlcmbonly.yaml'
+yaml_file_prfhrd = 'bt_gmv3500_prfhrd.yaml'
+yaml_file_agoraGfgs = 'bt_gmv3500_agoraGfgs.yaml'
+yaml_file_agoraGfgs_prfhrd = 'bt_gmv3500_agoraGfgs_prfhrd.yaml'
 btmp = bt.btemplate(yaml_file)
-btmp_temp = bt.btemplate(yaml_file_temp)
-btmp_standard_gaussianlcmbonly = bt.btemplate(yaml_file_standard_gaussianlcmbonly)
+btmp_prfhrd = bt.btemplate(yaml_file_prfhrd)
+btmp_agoraGfgs = bt.btemplate(yaml_file_agoraGfgs)
+btmp_agoraGfgs_prfhrd = bt.btemplate(yaml_file_agoraGfgs_prfhrd)
 mask = hp.read_map(btmp.maskfname)
 fsky = np.sum(mask**2)/mask.size
 nside = btmp.nside
-klm_yuuki = btmp.get_debiased_klm(1)
-klm_temp = btmp_temp.get_debiased_klm(1)
-klm_nonfg = btmp_standard_gaussianlcmbonly.get_debiased_klm(1)
-kmap_yuuki = hp.alm2map(klm_yuuki, nside)
-kmap_temp = hp.alm2map(klm_temp, nside)
-kmap_nonfg = hp.alm2map(klm_nonfg, nside)
-cross = hp.anafast(kmap_yuuki * mask, kmap_nonfg * mask)/fsky
-auto_yuuki = hp.anafast(kmap_yuuki * mask) / fsky
-auto_temp = hp.anafast(kmap_temp * mask) / fsky
-auto_nonfg = hp.anafast(kmap_nonfg * mask) / fsky
-#plm_yuuki = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/GMVTTEETE/plmGMVTTEETE_1a_1a.npz')['glm']
-#plm_nonfg = np.load('/oak/stanford/orgs/kipac/users/yukanaka/gaussian_input_skies_spt3g_patch/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/GMVTTEETE/plmGMVTTEETE_1a_1a.npz')['glm']
-#cross = hp.alm2cl(plm_yuuki,plm_nonfg,lmax=3500) * (l[:3501]*(l[:3501]+1))**2/4
-print(np.mean(cross[100:301]/auto_yuuki[100:301]))
+klm_fid = btmp.get_debiased_klm(5001)
+klm_fid_prfhrd = btmp_prfhrd.get_debiased_klm(5001)
+klm_agoraGfgs = btmp_agoraGfgs.get_debiased_klm(5001)
+klm_agoraGfgs_prfhrd = btmp_agoraGfgs_prfhrd.get_debiased_klm(5001)
+kmap_fid = hp.alm2map(klm_fid, nside)
+kmap_fid_prfhrd = hp.alm2map(klm_fid_prfhrd, nside)
+kmap_agoraGfgs = hp.alm2map(klm_agoraGfgs, nside)
+kmap_agoraGfgs_prfhrd = hp.alm2map(klm_agoraGfgs_prfhrd, nside)
+auto_fid = hp.anafast(kmap_fid * mask) / fsky
+auto_fid_prfhrd = hp.anafast(kmap_fid_prfhrd * mask) / fsky
+auto_agoraGfgs = hp.anafast(kmap_agoraGfgs * mask) / fsky
+auto_agoraGfgs_prfhrd = hp.anafast(kmap_agoraGfgs_prfhrd * mask) / fsky
+lbins = np.logspace(np.log10(30), np.log10(2000), 20)
+ldigitized = np.digitize(np.arange(2001), lbins)
+lbin_centers = (lbins[:-1] + lbins[1:]) / 2
+gaussian = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4_prftsz/clkk_polspice_mfxxonly_mfsplit_nops/cls_kgmvbhttprf_nsims1_498_nsims2_248_mcresp_mfxxonly_mfsplit_didx_0_with_subinput_debias_SIMN0.npz',allow_pickle=True)
 
 plt.figure(0)
 plt.clf()
 plt.axhline(y=1, color='k', linestyle='--')
-plt.plot(l[:2001],cross[:2001]/clkk[:2001],label='sim 1 gmvjtp klm x no nfg klm / theory clkk')
-plt.plot(l[:2001],cross[:2001]/auto_yuuki[:2001],label='sim 1 gmvjtp klm x no nfg klm / gmvjtp klm auto')
+plt.plot(lbin_centers,np.array([(auto_fid_prfhrd[:2001]/auto_agoraGfgs_prfhrd[:2001])[ldigitized == i].mean() for i in range(1, len(lbins))]),label='sim 5001 prfhrd gmvjtp Agora fid klm auto / G fgs klm auto')
+plt.plot(lbin_centers,gaussian['dvec0'].item()['rcl']/np.array([(auto_agoraGfgs_prfhrd[:2001])[ldigitized == i].mean() for i in range(1, len(lbins))]),label='sim mean prfhrd gmvjtp Gaussian klm auto / sim 5001 Agora G fgs klm auto')
+plt.plot(lbin_centers,np.array([(auto_fid[:2001]/auto_agoraGfgs[:2001])[ldigitized == i].mean() for i in range(1, len(lbins))]),label='sim 5001 gmvjtp Agora fid klm auto / G fgs klm auto')
 plt.grid(True, linestyle="--", alpha=0.5)
 plt.xlabel('$\ell$')
 plt.legend(loc='upper right', fontsize='small')
 plt.xscale('log')
 plt.xlim(10,2000)
-plt.ylim(0,2)
+plt.ylim(0.9,1.2)
 plt.tight_layout()
 plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
 
 plt.clf()
 plt.plot(l[:2001],clkk[:2001],color='k',label='theory clkk')
-plt.plot(l[:2001],auto_yuuki[:2001],label='sim 1 gmvjtp klm')
-plt.plot(l[:2001],auto_temp[:2001],label='sim 1 gmvjtp klm, reprocessed')
-plt.plot(l[:2001],auto_nonfg[:2001],label='sim 1 no nfg klm')
+plt.plot(l[:2001],auto_fid[:2001],color='firebrick',label='sim 5001 gmvjtp klm')
+plt.plot(l[:2001],auto_fid_prfhrd[:2001],color='forestgreen',label='sim 5001 prfhrd gmvjtp klm')
+plt.plot(l[:2001],auto_agoraGfgs[:2001],color='salmon',linestyle='--',alpha=0.5,label='sim 5001 gmvjtp klm, G fgs')
+plt.plot(l[:2001],auto_agoraGfgs_prfhrd[:2001],color='lightgreen',linestyle='--',alpha=0.5,label='sim 5001 prfhrd gmvjtp klm, G fgs')
 plt.grid(True, linestyle="--", alpha=0.5)
 plt.xlabel('$\ell$')
 plt.legend(loc='upper right', fontsize='small')
 plt.xscale('log')
 plt.yscale('log')
 plt.xlim(10,2000)
-plt.ylim(1e-10,1e-5)
-plt.tight_layout()
-plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
-
-plt.clf()
-plt.axhline(y=1, color='k', linestyle='--')
-plt.plot(l[:2001],auto_yuuki[:2001]/clkk[:2001],label='sim 1 gmvjtp klm auto / theory clkk')
-plt.plot(l[:2001],auto_temp[:2001]/clkk[:2001],label='sim 1 gmvjtp klm auto reprocessed / theory clkk')
-plt.plot(l[:2001],auto_nonfg[:2001]/clkk[:2001],label='sim 1 no nfg klm auto / theory clkk')
-plt.plot(l[:2001],auto_temp[:2001]/auto_yuuki[:2001],label='sim 1 gmvjtp klm auto reprocessed / sim 1 gmvjtp klm auto')
-plt.grid(True, linestyle="--", alpha=0.5)
-plt.xlabel('$\ell$')
-plt.legend(loc='upper right', fontsize='small')
-plt.xscale('log')
-plt.xlim(10,2000)
-plt.ylim(0,2)
+plt.ylim(5e-8,4e-7)
 plt.tight_layout()
 plt.savefig('/home/users/yukanaka/lensing_template/figs/temp.png')
 

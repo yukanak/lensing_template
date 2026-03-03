@@ -43,7 +43,7 @@ def bin_interp_spectra(spectrum, li=np.arange(2,2001), average_window=81):
 lmax = 2000
 nside = 2048
 l = np.arange(lmax+1)
-dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/pr3_cib_pr4_kappa_tracer/'
+dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/gnilc_pr3_cib_pr4_kappa/'
 ell = np.loadtxt("/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr4/cls/cls_clkk_pr4.dat")[:lmax+1,0]
 cliis = np.array([np.loadtxt(f"/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/planck_pr3/cls/cls_clii_545ghz_patch{i}.dat")[:lmax+1,1] * (1e6/58.04)**2 for i in [0,1,2,3,5,6,7,8]])
 clii = np.nanmean(cliis, axis=0)

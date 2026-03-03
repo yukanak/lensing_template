@@ -10,6 +10,23 @@ from scipy.signal import savgol_filter
 sys.path.append('/home/users/yukanaka/healqest/healqest/src/')
 import healqest_utils as utils
 
+'''
+#=============================================================================#
+# Once below is run for 499 sims, comment out everything below and comment in:
+savedir = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/lenz_cib_pr4_kappa_standard/weights_from_sims/'
+idxs = np.arange(499)+1
+save1 = 0
+save2 = 0
+for idx in idxs:
+    save1 += np.load(savedir+f'/klm1_weight_sim{idx}.npy')
+    save2 += np.load(savedir+f'/klm2_weight_sim{idx}.npy')
+save1 /= len(idxs)
+save2 /= len(idxs)
+np.save(savedir+f'/klm1_weight_avg', save1)
+np.save(savedir+f'/klm2_weight_avg', save2)
+#=============================================================================#
+'''
+
 parser = argparse.ArgumentParser()
 parser.add_argument('idx'       , default=None, type=int, help='idx')
 args = parser.parse_args()
@@ -41,6 +58,7 @@ def bin_interp_spectra(spectrum, li=np.arange(2,2001), average_window=81):
 # https://arxiv.org/pdf/1705.02332 equations 7 - 9
 # NOTE: change below
 yaml_file = 'bt_gmv3500_combined_lenz.yaml'
+savedir = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/lenz_cib_pr4_kappa_standard/weights_from_sims/'
 btmp = bt.btemplate(yaml_file,combined_tracer=True)
 lmax = btmp.lmax_b
 l = np.arange(lmax+1)
@@ -66,7 +84,7 @@ auto1 = bin_interp_spectra(auto1, li)
 # Get CIB-based phi tracer
 #klm2 = hp.read_alm(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/lenz_cib_phi_tracer/cib_klm_seed{idx}.alm')
 #klm2_map = hp.alm2map(klm2, nside)
-klm2_map = hp.read_map(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/lenz_cib_phi_tracer/cib_tracer_seed{idx}.fits')
+klm2_map = hp.read_map(f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/lenz_cib_pr4_kappa/cib_tracer_seed{idx}.fits')
 auto2 = hp.anafast(klm2_map * mask, lmax=lmax)/fsky
 cross12 = hp.anafast(klm1_map * mask, klm2_map * mask, lmax=lmax)/fsky
 auto2 = bin_interp_spectra(auto2, li)
@@ -131,8 +149,13 @@ kk_over_ii1_spline = InterpolatedUnivariateSpline(li, np.nan_to_num(np.sqrt(auto
 kk_over_ii1 = kk_over_ii1_spline(l)
 kk_over_ii2_spline = InterpolatedUnivariateSpline(li, np.nan_to_num(np.sqrt(autok/auto2)))
 kk_over_ii2 = kk_over_ii2_spline(l)
-#klm_combined = hp.almxfl(klm1,w1*np.sqrt(autok/auto1)) + hp.almxfl(klm2,w2*np.sqrt(autok/auto2))
-klm_combined = hp.almxfl(klm1,w1*kk_over_ii1) + hp.almxfl(klm2,w2*kk_over_ii2)
-klm_combined = np.nan_to_num(klm_combined, nan=0.0, posinf=0.0, neginf=0.0)
-hp.write_alm(btmp.dir_combined_tracer+f'/klm_combined_cib_qe_seed{idx}.alm', klm_combined)#, overwrite=True)
+#klm_combined = hp.almxfl(klm1,w1*kk_over_ii1) + hp.almxfl(klm2,w2*kk_over_ii2)
+#klm_combined = np.nan_to_num(klm_combined, nan=0.0, posinf=0.0, neginf=0.0)
+#hp.write_alm(btmp.dir_combined_tracer+f'/klm_combined_cib_qe_seed{idx}.alm', klm_combined)#, overwrite=True)
+save1 = w1*kk_over_ii1
+save2 = w2*kk_over_ii2
+np.save(savedir+f'/klm1_weight_sim{idx}', save1)
+np.save(savedir+f'/klm2_weight_sim{idx}', save2)
+
+
 

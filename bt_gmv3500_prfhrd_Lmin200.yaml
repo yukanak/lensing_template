@@ -19,12 +19,12 @@ ep_ells:
   lmax_p: 2000
   lmax_e: 1500
   lmin_e: 40
-  lmin_p: 24
+  lmin_p: 200
   mmin_e: 20
 
 outputs:
   dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_prfhrd/'
-  btpl_fname: 'btmpl_alm_%04d.fits'
-  btpl_spec_fname: 'btmpl_specs_%04d.npz'
-  btpl_pure_spec_fname: 'btmpl_pure_specs_%04d.npz'
+  btpl_fname: 'btmpl_alm_%04d_Lmin200.fits'
+  btpl_spec_fname: 'btmpl_specs_%04d_Lmin200.npz'
+  btpl_pure_spec_fname: 'btmpl_pure_specs_%04d_Lmin200.npz'
 

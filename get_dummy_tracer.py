@@ -58,7 +58,7 @@ def bin_interp_spectra(spectrum, li=np.arange(2,2001), average_window=81):
     cl_li = cl_spline_mean(li)
     return cl_li
 
-dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/dummy_tracer/'
+dir_out = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/cib_tracers/dummy/'
 lmax = 2000
 nside = 2048
 l = np.arange(lmax+1)

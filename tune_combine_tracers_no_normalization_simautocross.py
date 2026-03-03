@@ -14,6 +14,28 @@ import healqest_utils as utils
 
 # GET AND SAVE WEIGHTS FIRST
 
+#=============================================================================#
+'''
+#idxs = np.arange(499)+1
+idxs = [5001]
+d_pows = np.zeros((len(idxs),6144),dtype=np.complex_)
+d_pows_averaged = np.zeros(len(idxs),dtype=np.complex_)
+for i in idxs:
+    #fname = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_gnilc_pr3_cib_pr4_kappa_standard/btmpl_specs_{i:04d}.npz'
+    fname = f'/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/combined_agora545_cib_agora_kappa_standard/btmpl_specs_{i:04d}.npz'
+    tmp = np.load(fname)
+    auto = tmp['auto']
+    cross = tmp['cross']
+    #d_pows[i-1,:] = auto - cross
+    #d_pows_averaged[i-1] = np.mean((auto - cross)[30:201])
+    d_pows[i-5001,:] = auto - cross
+    d_pows_averaged[i-5001] = np.mean((auto - cross)[30:201])
+#fname = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/gnilc_pr3_cib_pr4_kappa_standard/gaussian_auto_cross_diffs_for_tune.npz'
+fname = '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/agora545_cib_agora_kappa_standard/gaussian_auto_cross_diffs_for_tune.npz'
+np.savez(fname, d_pows=d_pows, d_pows_averaged=d_pows_averaged)
+'''
+#=============================================================================#
+
 parser = argparse.ArgumentParser()
 parser.add_argument('yaml', default=None, type=str, help='yaml')
 parser.add_argument('idx', default=None, type=int, help='idx')
@@ -41,6 +63,7 @@ rhos2 = np.load(weightsdir+'/klm2_weight_rhos.npy')
 sqrt_kk_over_ii1 = np.load(weightsdir+'/klm1_weight_sqrt_kk_over_ii.npy')
 sqrt_kk_over_ii2 = np.load(weightsdir+'/klm2_weight_sqrt_kk_over_ii.npy')
 cib_tracer_dir = btmp.cib_tracer_dir
+d_pows_gaussian = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/combined_tracer_weights/gnilc_pr3_cib_pr4_kappa_standard/gaussian_auto_cross_diffs_for_tune.npz')['d_pows_averaged'].real
 
 #========== SECTION WEIGHTS IN TO L BINS ==========#
 def expand_bins_to_L(bin_edges, A, lmax):
@@ -70,7 +93,7 @@ def apply_bin_scalings_to_weights(weights_base, bin_edges, A, lmax):
 # For a minimizer, you can use scipy's optimize class
 # Try grid search first...
 def random_grid_search(rhos1_base,rhos2_base,bin_edges,btmp,klm1,klm2,
-                       sqrt_kk_over_ii1,sqrt_kk_over_ii2,idx,
+                       sqrt_kk_over_ii1,sqrt_kk_over_ii2,idx,d_gauss,
                        n_draws=200,sigma_A1=0.2,sigma_A2=0.2,
                        tune_A1=True,tune_A2=True,seed=0):
 
@@ -89,55 +112,35 @@ def random_grid_search(rhos1_base,rhos2_base,bin_edges,btmp,klm1,klm2,
         "weights2_L": None,
     }
 
-    # baseline (all ones)
-    A1_center = np.ones(nbins)
-    A2_center = np.ones(nbins)
+    # Base c_i(L) coefficients (can be negative)
+    c1_base = rhos1_base * sqrt_kk_over_ii1
+    c2_base = rhos2_base * sqrt_kk_over_ii2
 
     for t in range(n_draws):
-        # Step 1: draw from prior around 1
-        '''
+        # Step 1: tune multiplicative scalings of c_i directly (no normalization)
+        # draw lognormal scalings per bin (A > 0)
         if tune_A1:
-            # draw vector of length nbins where each element is an independent
-            # Gaussian number A_i ~ N(1,sigma(A)^2)
-            # samples from a normal distribution: loc=mean, scale=standard deviation, size=output shape
-            #A1_bins = rng.normal(loc=1.0, scale=sigma_A1, size=nbins)
-            # ENFORCE NON-NEGATIVITY + normalize later so that we enforce rhos_L in [0,1]
-            # sample in log space to enforce non-negativity
-            # A > 0 always (log-normal around 1)
             logA1_bins = rng.normal(loc=0.0, scale=sigma_A1, size=nbins)
             A1_bins = np.exp(logA1_bins)
-
         else:
-            A1_bins = A1_center.copy()
+            A1_bins = np.ones(nbins)
 
         if tune_A2:
-            #A2_bins = rng.normal(loc=1.0, scale=sigma_A2, size=nbins)
             logA2_bins = rng.normal(loc=0.0, scale=sigma_A2, size=nbins)
             A2_bins = np.exp(logA2_bins)
         else:
-            A2_bins = A2_center.copy()
-        '''
-        # one dof per bin: ratio R = A1/A2  (always > 0)
-        logR_bins = rng.normal(loc=0.0, scale=sigma_A1, size=nbins)
-        R_bins = np.exp(logR_bins)
+            A2_bins = np.ones(nbins)
 
-        # Expand to full L weights
-        rhos1_L = apply_bin_scalings_to_weights(rhos1_base, bin_edges, R_bins, lmax)
-        rhos2_L = apply_bin_scalings_to_weights(rhos2_base, bin_edges, np.ones_like(R_bins), lmax)
-        #rhos1_L = apply_bin_scalings_to_weights(rhos1_base, bin_edges, A1_bins, lmax)
-        #rhos2_L = apply_bin_scalings_to_weights(rhos2_base, bin_edges, A2_bins, lmax)
+        # expand to L
+        A1_L = expand_bins_to_L(bin_edges, A1_bins, lmax)
+        A2_L = expand_bins_to_L(bin_edges, A2_bins, lmax)
 
-        # THIS NORMALIZATION GUARANTEES rhos1_L and rhos2_L in [0,1] AND SUM TO 1
-        rhos1_L = np.maximum(0.0, rhos1_L)
-        rhos2_L = np.maximum(0.0, rhos2_L)
-        denominator = rhos1_L + rhos2_L; denominator[denominator == 0] = 1.0 # avoid divide by zero
-        rhos1_L = rhos1_L / denominator
-        rhos2_L = rhos2_L / denominator
-        weights1_L = rhos1_L * sqrt_kk_over_ii1
-        weights2_L = rhos2_L * sqrt_kk_over_ii2
+        # tuned coefficients
+        weights1_L = c1_base * A1_L
+        weights2_L = c2_base * A2_L
 
         # Evaluate
-        a_pow = score(weights1_L=weights1_L,weights2_L=weights2_L,btmp=btmp,klm1=klm1,klm2=klm2,idxs=idxs)
+        a_pow = score(weights1_L=weights1_L,weights2_L=weights2_L,btmp=btmp,klm1=klm1,klm2=klm2,idxs=idxs,d_gauss=d_gauss)
 
         if a_pow > best["a_pow"]:
             best.update(
@@ -170,7 +173,7 @@ def random_grid_search(rhos1_base,rhos2_base,bin_edges,btmp,klm1,klm2,
 
     return best
 
-def evaluate_candidate(weights1_L,weights2_L,i,btmp,klm1,klm2):
+def evaluate_candidate(weights1_L,weights2_L,i,btmp,klm1,klm2,d_gauss):
     #========== COMPUTE COMBINED TRACER ==========#
     klm_combined = hp.almxfl(klm1,weights1_L) + hp.almxfl(klm2,weights2_L)
     klm_combined = np.nan_to_num(klm_combined, nan=0.0, posinf=0.0, neginf=0.0)
@@ -181,22 +184,33 @@ def evaluate_candidate(weights1_L,weights2_L,i,btmp,klm1,klm2):
 
     #=== MEASURE POWER IN LT AUTO (sum across ell = [30,200]) AND MAXIMIZE ===#
     a_pow = np.mean(a[30:201])
+
+    #=== ALSO: MAKE SURE AUTO AND CROSS ARE CLOSE TO EACH OTHER ===#
+    d_pow = np.mean((a - c)[30:201])
+    print('d_pow: ', d_pow)
+    # percentile among Gaussian sims: # of (d_pows_gauss <= d_pow) / N
+    rank = np.mean(d_gauss <= d_pow)
+    print('rank: ', rank)
+    # don't want it in either tail, two-sided p-value
+    if (rank < 0.1) or (rank > 0.9):
+        return -np.inf
+
     return a_pow
 
-def score(weights1_L,weights2_L,btmp,klm1,klm2,idxs):
+def score(weights1_L,weights2_L,btmp,klm1,klm2,idxs,d_gauss):
     vals = []
     if idxs[0] == 0 or idxs[0] == 5001:
         # FOR DATA
         k1 = klm1
         k2 = klm2
         vals.append(evaluate_candidate(weights1_L=weights1_L,weights2_L=weights2_L,
-                                       i=idxs[0],btmp=btmp,klm1=k1,klm2=k2,))
+                                       i=idxs[0],btmp=btmp,klm1=k1,klm2=k2,d_gauss=d_gauss,))
     else:
         for i in idxs:
             k1 = klm1[i-idxs[0],:]
             k2 = klm2[i-idxs[0],:]
             vals.append(evaluate_candidate(weights1_L=weights1_L,weights2_L=weights2_L,
-                                           i=i,btmp=btmp,klm1=k1,klm2=k2,))
+                                           i=i,btmp=btmp,klm1=k1,klm2=k2,d_gauss=d_gauss,))
     return np.mean(vals)
 
 #=============================================================================#
@@ -246,7 +260,7 @@ bin_edges = np.array([0, 50, 100, 500, 1000, 1500, 2001])
 
 best = random_grid_search(rhos1_base=rhos1,rhos2_base=rhos2,
                           sqrt_kk_over_ii1=sqrt_kk_over_ii1,sqrt_kk_over_ii2=sqrt_kk_over_ii2,idx=idx,
-                          btmp=btmp,klm1=klm1, klm2=klm2,
+                          btmp=btmp,klm1=klm1, klm2=klm2, d_gauss=d_pows_gaussian,
                           bin_edges=bin_edges,n_draws=80,#n_draws=300,
                           sigma_A1=0.2, #0.05, # usually keep QE scalings tight if you even tune them
                           sigma_A2=0.2, #0.30, # allow more freedom on CIB

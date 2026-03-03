@@ -153,6 +153,7 @@ class btemplate():
 
         self.san0fname  = bconfig['phi']['san0fname']
         self.rdn0fname  = bconfig['phi']['rdn0fname']
+        self.simn0fname  = "N0_%s.npy"
 
         if self.combined_tracer:
             self.dir_combined_tracer = bconfig['phi']['dir_combined_tracer']
@@ -164,7 +165,7 @@ class btemplate():
         if self.combined_tracer:
             self.maskfname = bconfig['masks']['commonmask']
         else:
-            self.maskfname = pconfig['pspec']['mask_boundary']  ##TODO: test different masks
+            self.maskfname = pconfig['pspec']['mask_boundary']
 
         #load cinve yaml
         econfig     = yaml.safe_load(open(bconfig['e_yaml'], "rb"))
@@ -268,12 +269,13 @@ class btemplate():
                 resp = self.get_response(qe)
                 respall += resp
             n0   = 1/respall[:self.lmax+1]
-        elif idx==0 or idx>5000:
+        elif idx == 0:
             print("load RDN0")
-            #TODO
             n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.rdn0fname%(self.qe.upper(),idx))[:self.lmax+1]
-            #n0   = np.load('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/'+"/SAN0/"+self.rdn0fname%(self.qe.upper(),idx))[:self.lmax+1]
-            #n0   = hutils.loadcls('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4//clkk_polspice_mfxxonly_mfsplit_nops/',488,'gmv','N0',N0=None,Lmin=24,Lmax=2500,use_cache=False,startidx=11)[:self.lmax+1]
+        elif idx > 5000:
+            print("load SIM N0")
+            #TODO: FOR AGORA, USE SIM N0
+            n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.simn0fname%(self.qe.upper()))[:self.lmax+1]
         else:
             n0   = np.load(self.dir_p[:-3]+"/SAN0/"+self.san0fname%self.qe.upper())[:self.lmax+1,idx-1]
         kfilt = self.clkk/(self.clkk+n0)
@@ -298,8 +300,6 @@ class btemplate():
                 pwf = hp.almxfl(klm, safe_inv(self.phi2kap(self.ls)))
             else:
                 klm      = self.get_debiased_klm(idx)
-                #TODO
-                #klm /= 0.9400585534643191
                 kfilt   = self.get_kap_filt(idx)
                 pwf  = hp.almxfl(klm, kfilt * safe_inv(self.phi2kap(self.ls)))
 

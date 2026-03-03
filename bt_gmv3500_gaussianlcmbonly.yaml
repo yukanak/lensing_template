@@ -32,7 +32,7 @@ ep_ells:
 #  tebinfanem:
 
 outputs:
-  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/'
-  btpl_fname: 'btmpl_gaussianlcmbonly_alm_%04d.fits'
-  btpl_spec_fname: 'btmpl_gaussianlcmbonly_specs_%04d.npz'
-  btpl_pure_spec_fname: 'btmpl_pure_gaussianlcmbonly_specs_%04d.npz'
+  dir: '/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_gaussianlcmbonly/'
+  btpl_fname: 'btmpl_alm_%04d.fits'
+  btpl_spec_fname: 'btmpl_specs_%04d.npz'
+  btpl_pure_spec_fname: 'btmpl_pure_specs_%04d.npz'

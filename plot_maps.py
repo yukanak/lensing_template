@@ -42,7 +42,7 @@ cinv_emap = hp.alm2map(cinv_elm,nside=nside)
 kmap = hp.read_map('/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/outputs/lensrec/gmv052425/gmvjtp_sep/crosstf_v5_lmin500_500_500_lmax3500_3000_3000_mmin100_binmaskcinv_notch_softinner_mtheta3_v4/kmapxx_kGMV_1_1.fits')
 kmap = hp.smoothing(kmap, fwhm=fwhm_rad)
 
-btemplate = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500_test_uncorr/btmpl_alm_0001.fits')
+btemplate = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500/btmpl_alm_0001.fits')
 bl = hp.gauss_beam(fwhm=fwhm_rad2, lmax=hp.Alm.getlmax(len(btemplate)))
 btemplate = hp.almxfl(btemplate, bl) # smooth
 #btemplate = alm_cutlmax(btemplate,300)
@@ -64,8 +64,8 @@ plt.clf()
 
 # Display map with apodization visible
 #disp = cinv_emap * mask
-#disp = kmap * mask
-disp = btemplate_map * mask
+disp = kmap * mask
+#disp = btemplate_map * mask
 #disp = btemplate_with_cib_map * mask
 #disp = input_b_map * mask
 
@@ -73,8 +73,8 @@ disp[mask == 0] = hp.UNSEEN   # only zero-mask outside is hidden
 
 #vmin, vmax = -15, 20 # Abhi's original
 #vmin, vmax = -3e4, 3e4 # E
-#vmin, vmax = -0.1, 0.1 # kappa
-vmin, vmax = -0.5, 0.5 # B
+vmin, vmax = -0.1, 0.1 # kappa
+#vmin, vmax = -0.5, 0.5 # B
 #cmap = plt.cm.coolwarm
 cmap = plt.cm.RdBu_r
 
@@ -150,16 +150,16 @@ plt.text(0.017, 0.25, "Declination", fontsize=14,
 #cbar.set_label(r'$y \times 10^6$', fontsize=14)
 
 #plt.title(r"E Map (Low-$\ell$ Map Set)", fontsize=14)
-#plt.title(r"$\kappa$ Map from SPT-3G 2019/2020 Lensing Analysis", fontsize=14)
-plt.title(r"Lensing Template", fontsize=14)
+plt.title(r"$\kappa$ Map from SPT-3G 2019/2020 Lensing Analysis", fontsize=14)
+#plt.title(r"Lensing Template", fontsize=14)
 #plt.title(r"Lensing Template (with CIB Tracer)", fontsize=14)
 #plt.title(r"Input B Map", fontsize=14)
 
 # Tight layout and save
 plt.tight_layout()
-#plt.savefig("/home/users/yukanaka/lensing_template/figs/cinv_e_map.pdf", dpi=300, bbox_inches='tight')  # Save high-res
-#plt.savefig("/home/users/yukanaka/lensing_template/figs/kappa_map.pdf", dpi=300, bbox_inches='tight')  # Save high-res
-plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_map.pdf", dpi=300, bbox_inches='tight')  # Save high-res
+#plt.savefig("/home/users/yukanaka/lensing_template/figs/cinv_e_map.png", dpi=300, bbox_inches='tight')  # Save high-res
+plt.savefig("/home/users/yukanaka/lensing_template/figs/kappa_map.png", dpi=300, bbox_inches='tight')  # Save high-res
+#plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_map.pdf", dpi=300, bbox_inches='tight')  # Save high-res
 #plt.savefig("/home/users/yukanaka/lensing_template/figs/btemplate_with_cib_map.pdf", dpi=300, bbox_inches='tight')  # Save high-res
-#plt.savefig("/home/users/yukanaka/lensing_template/figs/input_b_map.pdf", dpi=300, bbox_inches='tight')  # Save high-res
+#plt.savefig("/home/users/yukanaka/lensing_template/figs/input_b_map.png", dpi=300, bbox_inches='tight')  # Save high-res
 
