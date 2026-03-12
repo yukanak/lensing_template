@@ -23,6 +23,22 @@ yaml_file_standard_gaussianlcmbonly = 'bt_gmv3500_gaussianlcmbonly.yaml'
 btmp_standard_gaussianlcmbonly = bt.btemplate(yaml_file_standard_gaussianlcmbonly)
 yaml_file_standard_agoralcmbonly = 'bt_gmv3500_agoralcmbonly.yaml'
 btmp_standard_agoralcmbonly = bt.btemplate(yaml_file_standard_agoralcmbonly)
+yaml_file_combined = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
+yaml_file_combined_prfhrd = 'bt_gmv3500_combined_pr3_cib_pr4_kappa_prfhrd.yaml'
+yaml_file_combined_pp = 'bt_gmv3500_combined_pr3_cib_pr4_kappa_pp.yaml'
+yaml_file_combined_agora = 'bt_gmv3500_combined_agora545_cib.yaml'
+yaml_file_combined_prfhrd_agora = 'bt_gmv3500_combined_agora545_cib_prfhrd.yaml'
+yaml_file_combined_pp_agora = 'bt_gmv3500_combined_agora545_cib_pp.yaml'
+yaml_file_combined_agoraGfgs = 'bt_gmv3500_combined_agora545_cib_agoraGfgs.yaml'
+yaml_file_combined_prfhrd_agoraGfgs = 'bt_gmv3500_combined_agora545_cib_agoraGfgs_prfhrd.yaml'
+btmp_combined = bt.btemplate(yaml_file_combined,combined_tracer=True)
+btmp_combined_prfhrd = bt.btemplate(yaml_file_combined_prfhrd,combined_tracer=True)
+btmp_combined_pp = bt.btemplate(yaml_file_combined_pp,combined_tracer=True)
+btmp_combined_agora = bt.btemplate(yaml_file_combined_agora,combined_tracer=True)
+btmp_combined_prfhrd_agora = bt.btemplate(yaml_file_combined_prfhrd_agora,combined_tracer=True)
+btmp_combined_pp_agora = bt.btemplate(yaml_file_combined_pp_agora,combined_tracer=True)
+btmp_combined_agoraGfgs = bt.btemplate(yaml_file_combined_agoraGfgs,combined_tracer=True)
+btmp_combined_prfhrd_agoraGfgs = bt.btemplate(yaml_file_combined_prfhrd_agoraGfgs,combined_tracer=True)
 nside = btmp.nside
 mask = hp.read_map(btmp.maskfname)
 fsky = np.sum(mask**2)/mask.size
@@ -43,6 +59,12 @@ a_prfhrd, _, _ = btmp.get_masked_spec(0)
 auto_prfhrd_data = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
 a_pp, _, _ = btmp_pp.get_masked_spec(0)
 auto_pp_data = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+a_combined, _, _ = btmp_combined.get_masked_spec(0)
+auto_combined_standard_data = np.array([a_combined[digitized == i].mean() for i in range(1, len(lbins))])
+a_combined_prfhrd, _, _ = btmp_combined_prfhrd.get_masked_spec(0)
+auto_combined_prfhrd_data = np.array([a_combined_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+a_combined_pp, _, _ = btmp_combined_pp.get_masked_spec(0)
+auto_combined_pp_data = np.array([a_combined_pp[digitized == i].mean() for i in range(1, len(lbins))])
 
 #=============================================================================#
 
@@ -62,6 +84,12 @@ auto_in_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_combined_standard_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_combined_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_combined_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+cross_combined_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_cross_combined_Gfg_agorafg = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_cross_combined_prfhrd_Gfg_agorafg = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_cross_Gfg_agorafg = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_cross_prfhrd_Gfg_agorafg = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_cross_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
@@ -77,6 +105,10 @@ for ii, idx in enumerate(idxs):
     auto_prfhrd_agoraGfgs[ii,:] = [a_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
     cross_prfhrd_agoraGfgs[ii,:] = [c_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_prfhrd_agoraGfgs[ii,:] = [a_in_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    a_combined_agoraGfgs, c_combined_agoraGfgs, _ = btmp_combined_agoraGfgs.get_masked_spec(idx)
+    cross_combined_standard_agoraGfgs[ii,:] = [c_combined_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
+    a_combined_prfhrd_agoraGfgs, c_combined_prfhrd_agoraGfgs, _ = btmp_combined_prfhrd_agoraGfgs.get_masked_spec(idx)
+    cross_combined_prfhrd_agoraGfgs[ii,:] = [c_combined_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]
 
     a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx,recompute=False,savefile=False)
     auto_standard[ii,:] = [a_standard[digitized == i].mean() for i in range(1, len(lbins))]
@@ -90,22 +122,32 @@ for ii, idx in enumerate(idxs):
     auto_pp[ii,:] = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
     cross_pp[ii,:] = [c_pp[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_pp[ii,:] = [a_in_pp[digitized == i].mean() for i in range(1, len(lbins))]
+    a_combined_agora, c_combined_agora, _ = btmp_combined_agora.get_masked_spec(idx)
+    cross_combined_standard_agora[ii,:] = [c_combined_agora[digitized == i].mean() for i in range(1, len(lbins))]
+    a_combined_prfhrd_agora, c_combined_prfhrd_agora, _ = btmp_combined_prfhrd_agora.get_masked_spec(idx)
+    cross_combined_prfhrd_agora[ii,:] = [c_combined_prfhrd_agora[digitized == i].mean() for i in range(1, len(lbins))]
 
     diff_cross_Gfg_agorafg[ii,:] = np.array(cross_standard_agoraGfgs[ii,:]) - np.array(cross_standard[ii,:])
     diff_cross_prfhrd_Gfg_agorafg[ii,:] = np.array(cross_prfhrd_agoraGfgs[ii,:]) - np.array(cross_prfhrd[ii,:])
     diff_cross_prfhrd_agora[ii,:] = np.array(cross_standard[ii,:]) - np.array(cross_prfhrd[ii,:])
     diff_cross_pp_agora[ii,:] = np.array(cross_standard[ii,:]) - np.array(cross_pp[ii,:])
     diff_cross_pp_prfhrd_agora[ii,:] = np.array(cross_prfhrd[ii,:]) - np.array(cross_pp[ii,:])
+    diff_cross_combined_Gfg_agorafg[ii,:] = np.array(cross_combined_standard_agoraGfgs[ii,:]) - np.array(cross_combined_standard_agora[ii,:])
+    diff_cross_combined_prfhrd_Gfg_agorafg[ii,:] = np.array(cross_combined_prfhrd_agoraGfgs[ii,:]) - np.array(cross_combined_prfhrd_agora[ii,:])
 diff_cross_std_Gfg_agorafg = np.std(diff_cross_Gfg_agorafg, axis=0)
 diff_cross_std_prfhrd_Gfg_agorafg = np.std(diff_cross_prfhrd_Gfg_agorafg, axis=0)
 diff_cross_std_prfhrd_agora = np.std(diff_cross_prfhrd_agora, axis=0)
 diff_cross_std_pp_agora = np.std(diff_cross_pp_agora, axis=0)
 diff_cross_std_pp_prfhrd_agora = np.std(diff_cross_pp_prfhrd_agora, axis=0)
+diff_cross_combined_std_Gfg_agorafg = np.std(diff_cross_combined_Gfg_agorafg, axis=0)
+diff_cross_combined_std_prfhrd_Gfg_agorafg = np.std(diff_cross_combined_prfhrd_Gfg_agorafg, axis=0)
 diff_cross_mean_Gfg_agorafg = np.mean(diff_cross_Gfg_agorafg, axis=0) # sim mean to subtract
 diff_cross_mean_prfhrd_Gfg_agorafg = np.mean(diff_cross_prfhrd_Gfg_agorafg, axis=0) # sim mean to subtract
 diff_cross_mean_prfhrd_agora = np.mean(diff_cross_prfhrd_agora, axis=0) # sim mean to subtract
 diff_cross_mean_pp_agora = np.mean(diff_cross_pp_agora, axis=0) # sim mean to subtract
 diff_cross_mean_pp_prfhrd_agora = np.mean(diff_cross_pp_prfhrd_agora, axis=0) # sim mean to subtract
+diff_cross_combined_mean_Gfg_agorafg = np.mean(diff_cross_combined_Gfg_agorafg, axis=0)
+diff_cross_combined_mean_prfhrd_Gfg_agorafg = np.mean(diff_cross_combined_prfhrd_Gfg_agorafg, axis=0)
 
 auto_mean_standard_agoraGfgs = np.mean(auto_standard_agoraGfgs, axis=0)
 auto_var_standard_agoraGfgs = np.var(auto_standard_agoraGfgs, axis=0)
@@ -119,6 +161,10 @@ cross_mean_prfhrd_agoraGfgs = np.mean(cross_prfhrd_agoraGfgs, axis=0)
 cross_var_prfhrd_agoraGfgs = np.var(cross_prfhrd_agoraGfgs, axis=0)
 auto_input_mean_prfhrd_agoraGfgs = np.mean(auto_in_prfhrd_agoraGfgs, axis=0)
 auto_input_var_prfhrd_agoraGfgs = np.var(auto_in_prfhrd_agoraGfgs, axis=0)
+cross_combined_mean_standard_agoraGfgs = np.mean(cross_combined_standard_agoraGfgs, axis=0)
+cross_combined_var_standard_agoraGfgs = np.var(cross_combined_standard_agoraGfgs, axis=0)
+cross_combined_mean_prfhrd_agoraGfgs = np.mean(cross_combined_prfhrd_agoraGfgs, axis=0)
+cross_combined_var_prfhrd_agoraGfgs = np.var(cross_combined_prfhrd_agoraGfgs, axis=0)
 
 auto_mean_standard = np.mean(auto_standard, axis=0)
 auto_var_standard = np.var(auto_standard, axis=0)
@@ -138,6 +184,10 @@ cross_mean_pp = np.mean(cross_pp, axis=0)
 cross_var_pp = np.var(cross_pp, axis=0)
 auto_input_mean_pp = np.mean(auto_in_pp, axis=0)
 auto_input_var_pp = np.var(auto_in_pp, axis=0)
+cross_combined_mean_standard = np.mean(cross_combined_standard_agora, axis=0)
+cross_combined_var_standard = np.var(cross_combined_standard_agora, axis=0)
+cross_combined_mean_prfhrd = np.mean(cross_combined_prfhrd_agora, axis=0)
+cross_combined_var_prfhrd = np.var(cross_combined_prfhrd_agora, axis=0)
 
 #=============================================================================#
 '''
@@ -177,6 +227,8 @@ auto_in_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 auto_in_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_combined = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+auto_combined_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
@@ -197,6 +249,10 @@ for ii, idx in enumerate(idxs):
     auto_pp[ii,:] = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
     cross_pp[ii,:] = [c_pp[digitized == i].mean() for i in range(1, len(lbins))]
     auto_in_pp[ii,:] = [a_in_pp[digitized == i].mean() for i in range(1, len(lbins))]
+    a_combined, _, _ = btmp_combined.get_masked_spec(idx)
+    auto_combined[ii,:] = [a_combined[digitized == i].mean() for i in range(1, len(lbins))]
+    a_combined_prfhrd, _, _ = btmp_combined_prfhrd.get_masked_spec(idx)
+    auto_combined_prfhrd[ii,:] = [a_combined_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
     diff_auto_prfhrd[ii,:] = np.array(auto_standard[ii,:]) - np.array(auto_prfhrd[ii,:])
     diff_auto_pp[ii,:] = np.array(auto_standard[ii,:]) - np.array(auto_pp[ii,:])
     diff_auto_pp_prfhrd[ii,:] = np.array(auto_prfhrd[ii,:]) - np.array(auto_pp[ii,:])
@@ -233,6 +289,10 @@ cross_mean_pp_gaussian = np.mean(cross_pp, axis=0)
 cross_var_pp_gaussian = np.var(cross_pp, axis=0)
 auto_input_mean_pp_gaussian = np.mean(auto_in_pp, axis=0)
 auto_input_var_pp_gaussian = np.var(auto_in_pp, axis=0)
+auto_combined_mean_standard_gaussian = np.mean(auto_combined, axis=0)
+auto_combined_var_standard_gaussian = np.var(auto_combined, axis=0)
+auto_combined_mean_prfhrd_gaussian = np.mean(auto_combined_prfhrd, axis=0)
+auto_combined_var_prfhrd_gaussian = np.var(auto_combined_prfhrd, axis=0)
 
 ## TO INVESTIGATE SAMPLE VARIANCE, take sets of 10 of the Gaussian set
 #Nsims, Nbins = len(idxs),len(lbins)-1
@@ -338,45 +398,63 @@ plt.savefig('figs/btemplates_check_prfhrd_agora.png',bbox_inches='tight')
 plt.figure(0)
 plt.clf()
 plt.plot(np.zeros(4096),'k--',lw=0.8,dashes=(6,3))
-plt.errorbar(bin_centers, (cross_mean_standard_agoraGfgs - cross_mean_standard) / np.sqrt(cross_var_standard_gaussian), yerr=diff_cross_std_Gfg_agorafg/np.sqrt(10)/np.sqrt(cross_var_standard_gaussian), color='pink', linestyle='--', label="(LT cross diff standard Agora w/ G fg - Agora fiducial, avg 10 sims)\n / (error bars on LT auto, standard G avg)")
-plt.errorbar(bin_centers, (cross_mean_prfhrd_agoraGfgs - cross_mean_prfhrd) / np.sqrt(cross_var_prfhrd_gaussian), yerr=diff_cross_std_prfhrd_Gfg_agorafg/np.sqrt(10)/np.sqrt(cross_var_prfhrd_gaussian), color='olive', linestyle='--', label="(LT cross diff prfhrd Agora w/ G fg - Agora fiducial, avg 10 sims)\n / (error bars on LT auto, prfhrd G avg)")
-plt.legend(loc='upper left', fontsize='x-small')
+plt.errorbar(bin_centers, (cross_mean_standard_agoraGfgs - cross_mean_standard) / np.sqrt(auto_var_standard_gaussian), yerr=diff_cross_std_Gfg_agorafg/np.sqrt(10)/np.sqrt(auto_var_standard_gaussian), color='pink', linestyle='--', label="standard")
+plt.errorbar(bin_centers, (cross_mean_prfhrd_agoraGfgs - cross_mean_prfhrd) / np.sqrt(auto_var_prfhrd_gaussian), yerr=diff_cross_std_prfhrd_Gfg_agorafg/np.sqrt(10)/np.sqrt(auto_var_prfhrd_gaussian), color='olive', linestyle='--', label="profile hardened")
+plt.errorbar(bin_centers, (cross_combined_mean_standard_agoraGfgs - cross_combined_mean_standard) / np.sqrt(auto_combined_var_standard_gaussian), yerr=diff_cross_combined_std_Gfg_agorafg/np.sqrt(10)/np.sqrt(auto_combined_var_standard_gaussian), color='thistle', linestyle='--', label="standard + CIB")
+plt.errorbar(bin_centers, (cross_combined_mean_prfhrd_agoraGfgs - cross_combined_mean_prfhrd) / np.sqrt(auto_combined_var_prfhrd_gaussian), yerr=diff_cross_combined_std_prfhrd_Gfg_agorafg/np.sqrt(10)/np.sqrt(auto_combined_var_prfhrd_gaussian), color='paleturquoise', linestyle='--', label="profile hardened + CIB")
+plt.legend(loc='upper left', fontsize='medium')
 plt.xscale('log')
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$\Delta C_\ell^{BB} / \sigma(C_\ell^{BB, \mathrm{LT auto}})$")
 plt.xlim(10,2000)
 plt.ylim(-0.3,0.9)
+plt.title('(LT cross diff Agora w/ G fg - Agora fiducial, avg 10 sims)\n / (error bars on LT auto, G avg)')
 plt.savefig('figs/btemplates_data_spec_diff_no_sim_mean_sub.png',bbox_inches='tight')
 
 # Plot RATIO comparing fg bias taken from Agora G fg sims with total lensing BB power as a function of ell
 plt.figure(0)
 plt.clf()
 plt.plot(np.zeros(4096),'k--',lw=0.8,dashes=(6,3))
-plt.errorbar(bin_centers, (cross_mean_standard_agoraGfgs - cross_mean_standard) / auto_mean_standard_gaussian, yerr=diff_cross_std_Gfg_agorafg/np.sqrt(10)/auto_mean_standard_gaussian, color='pink', linestyle='--', label="(LT cross diff standard Agora w/ G fg - Agora fiducial, avg 10 sims) / (LT auto, standard G avg)")
-plt.errorbar(bin_centers, (cross_mean_prfhrd_agoraGfgs - cross_mean_prfhrd) / auto_mean_prfhrd_gaussian, yerr=diff_cross_std_prfhrd_Gfg_agorafg/np.sqrt(10)/auto_mean_prfhrd_gaussian, color='olive', linestyle='--', label="(LT cross diff prfhrd Agora w/ G fg - Agora fiducial, avg 10 sims) / (LT auto, prfhrd G avg)")
-plt.legend(loc='lower left', fontsize='x-small')
+plt.errorbar(bin_centers, (cross_mean_standard_agoraGfgs - cross_mean_standard) / auto_mean_standard_gaussian, yerr=diff_cross_std_Gfg_agorafg/np.sqrt(10)/auto_mean_standard_gaussian, color='pink', linestyle='--', label="standard")
+plt.errorbar(bin_centers, (cross_mean_prfhrd_agoraGfgs - cross_mean_prfhrd) / auto_mean_prfhrd_gaussian, yerr=diff_cross_std_prfhrd_Gfg_agorafg/np.sqrt(10)/auto_mean_prfhrd_gaussian, color='olive', linestyle='--', label="profile hardened")
+plt.errorbar(bin_centers, (cross_combined_mean_standard_agoraGfgs - cross_combined_mean_standard) / auto_combined_mean_standard_gaussian, yerr=diff_cross_combined_std_Gfg_agorafg/np.sqrt(10)/auto_combined_mean_standard_gaussian, color='thistle', linestyle='--', label="standard + CIB")
+plt.errorbar(bin_centers, (cross_combined_mean_prfhrd_agoraGfgs - cross_combined_mean_prfhrd) / auto_combined_mean_prfhrd_gaussian, yerr=diff_cross_combined_std_prfhrd_Gfg_agorafg/np.sqrt(10)/auto_combined_mean_prfhrd_gaussian, color='paleturquoise', linestyle='--', label="profile hardened + CIB")
+plt.legend(loc='lower left', fontsize='medium')
 plt.xscale('log')
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$\Delta C_\ell^{BB} / C_\ell^{BB, \mathrm{LT auto}}$")
 plt.xlim(10,2000)
 plt.ylim(-0.06,0.06)
+plt.title('(LT cross diff Agora w/ G fg - Agora fiducial, avg 10 sims)\n / (LT auto, G avg)')
 plt.savefig('figs/btemplates_data_spec_diff_no_sim_mean_sub.png',bbox_inches='tight')
 
 # Plot data difference between different reconstruction types with sim mean subtraction
 plt.figure(0)
 plt.clf()
 plt.plot(np.zeros(4096),'k--',lw=0.8,dashes=(6,3))
-plt.errorbar(bin_centers, ((np.array(auto_standard_data) - np.array(auto_prfhrd_data)) - diff_auto_mean_prfhrd_gaussian) * scal, yerr=diff_auto_std_prfhrd_gaussian * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd, data")
+#plt.errorbar(bin_centers, ((np.array(auto_standard_data) - np.array(auto_prfhrd_data)) - diff_auto_mean_prfhrd_gaussian) * scal, yerr=diff_auto_std_prfhrd_gaussian * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd, data")
 plt.errorbar(bin_centers, ((np.array(auto_standard_data) - np.array(auto_pp_data)) - diff_auto_mean_pp_gaussian) * scal, yerr=diff_auto_std_pp_gaussian * scal, color='darkblue', linestyle='-', label="btemplate auto diff standard - pol-only, data")
-plt.errorbar(bin_centers, ((np.array(auto_prfhrd_data) - np.array(auto_pp_data)) - diff_auto_mean_pp_prfhrd_gaussian) * scal, yerr=diff_auto_std_pp_prfhrd_gaussian * scal, color='forestgreen', linestyle='-', label="btemplate auto diff prfhrd - pol-only, data")
+#plt.errorbar(bin_centers, ((np.array(auto_prfhrd_data) - np.array(auto_pp_data)) - diff_auto_mean_pp_prfhrd_gaussian) * scal, yerr=diff_auto_std_pp_prfhrd_gaussian * scal, color='forestgreen', linestyle='-', label="btemplate auto diff prfhrd - pol-only, data")
 
-plt.errorbar(bin_centers, ((auto_mean_standard - auto_mean_prfhrd) - diff_auto_mean_prfhrd_gaussian) * scal, yerr=diff_auto_std_prfhrd_gaussian * scal, color='salmon', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
+#plt.errorbar(bin_centers, ((auto_mean_standard - auto_mean_prfhrd) - diff_auto_mean_prfhrd_gaussian) * scal, yerr=diff_auto_std_prfhrd_gaussian * scal, color='salmon', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
 plt.errorbar(bin_centers, ((auto_mean_standard - auto_mean_pp) - diff_auto_mean_pp_gaussian) * scal, yerr=diff_auto_std_pp_gaussian * scal, color='cornflowerblue', linestyle='--', label="btemplate auto diff standard - pol-only, avg 10 Agora sims", alpha=0.5)
-plt.errorbar(bin_centers, ((auto_mean_prfhrd - auto_mean_pp) - diff_auto_mean_pp_prfhrd_gaussian) * scal, yerr=diff_auto_std_pp_prfhrd_gaussian * scal, color='lightgreen', linestyle='--', label="btemplate auto diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
+#plt.errorbar(bin_centers, ((auto_mean_prfhrd - auto_mean_pp) - diff_auto_mean_pp_prfhrd_gaussian) * scal, yerr=diff_auto_std_pp_prfhrd_gaussian * scal, color='lightgreen', linestyle='--', label="btemplate auto diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
 
 #plt.errorbar(bin_centers, ((cross_mean_standard - cross_mean_prfhrd) - diff_cross_mean_prfhrd_gaussian) * scal, yerr=diff_cross_std_prfhrd_gaussian * scal, color='pink', linestyle='--', label="btemplate cross diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
 #plt.errorbar(bin_centers, ((cross_mean_standard - cross_mean_pp) - diff_cross_mean_pp_gaussian) * scal, yerr=diff_cross_std_pp_gaussian * scal, color='cornflowerblue', linestyle='--', label="btemplate cross diff standard - pol-only, avg 10 Agora sims", alpha=0.5)
 #plt.errorbar(bin_centers, ((cross_mean_prfhrd - cross_mean_pp) - diff_cross_mean_pp_prfhrd_gaussian) * scal, yerr=diff_cross_std_pp_prfhrd_gaussian * scal, color='lightgreen', linestyle='--', label="btemplate cross diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
+
+idxs = np.arange(10) + 5001
+for ii,idx in enumerate(idxs):
+    a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx,recompute=False,savefile=False)
+    auto_standard = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))])
+    a_prfhrd, c_prfhrd, a_in_prfhrd = btmp.get_masked_spec(idx)
+    auto_prfhrd = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    a_pp, c_pp, a_in_pp = btmp_pp.get_masked_spec(idx)
+    auto_pp = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    #plt.errorbar(bin_centers, ((auto_standard - auto_prfhrd) - diff_auto_mean_prfhrd_gaussian) * scal, yerr=diff_auto_std_prfhrd_gaussian * scal, color='lightgray', alpha=0.5, linestyle='-')
+    plt.errorbar(bin_centers, ((auto_standard - auto_pp) - diff_auto_mean_pp_gaussian) * scal, yerr=diff_auto_std_pp_gaussian * scal, color='lightgray', alpha=0.5, linestyle='-')
+    #plt.errorbar(bin_centers, ((auto_prfhrd - auto_pp) - diff_auto_mean_pp_prfhrd_gaussian) * scal, yerr=diff_auto_std_pp_prfhrd_gaussian * scal, color='lightgray', alpha=0.5, linestyle='-')
 
 plt.legend(loc='lower right', fontsize='x-small')
 plt.xscale('log')
@@ -389,18 +467,17 @@ plt.savefig('figs/btemplates_data_spec_diff.png',bbox_inches='tight')
 # Plot
 plt.figure(0)
 plt.clf()
+plt.errorbar(bin_centers, ((auto_mean_standard_agoraGfgs - auto_mean_prfhrd_agoraGfgs) - diff_auto_mean_prfhrd_gaussian) * scal, yerr=diff_auto_std_prfhrd_gaussian * scal, color='salmon', linestyle='--', label="btemplate auto diff Agora G fgs standard - Agora G fgs prfhrd, sim mean subtracted", alpha=0.5)
 plt.plot(np.zeros(4096),'k--',lw=0.8,dashes=(6,3))
-#plt.errorbar(bin_centers, (np.array(auto_standard_data) - np.array(auto_prfhrd_data)) * scal, yerr=diff_auto_std_prfhrd_gaussian * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd, data")
-#plt.errorbar(bin_centers, (cross_mean_standard - cross_mean_prfhrd) * scal, yerr=diff_cross_std_prfhrd_gaussian * scal, color='pink', linestyle='--', label="btemplate cross diff standard - prfhrd, avg 10 Agora sims")
-plt.errorbar(bin_centers, (cross_mean_standard_agoraGfgs - cross_mean_standard) * scal, yerr=diff_cross_std_Gfg_agorafg * scal, color='mediumpurple', linestyle='--', label="btemplate cross diff standard Agora with G foregrounds - Agora fiducial, avg 10 Agora sims")
-plt.errorbar(bin_centers, (cross_mean_prfhrd_agoraGfgs - cross_mean_prfhrd) * scal, yerr=diff_cross_std_prfhrd_Gfg_agorafg * scal, color='magenta', linestyle='--', label="btemplate cross diff prfhrd Agora with G foregrounds - Agora fiducial, avg 10 Agora sims")
+plt.errorbar(bin_centers, ((auto_mean_standard_agoraGfgs - auto_mean_pp) - diff_auto_mean_pp_gaussian) * scal, yerr=diff_auto_std_pp_gaussian * scal, color='cornflowerblue', linestyle='--', label="btemplate auto diff Agora G fgs standard - Agora fid pol-only, sim mean subtracted", alpha=0.5)
+plt.errorbar(bin_centers, ((auto_mean_prfhrd_agoraGfgs - auto_mean_pp) - diff_auto_mean_pp_prfhrd_gaussian) * scal, yerr=diff_auto_std_pp_prfhrd_gaussian * scal, color='lightgreen', linestyle='--', label="btemplate auto diff Agora G fgs prfhrd - Agora fid pol-only, sim mean subtracted", alpha=0.5)
 plt.legend(loc='lower right', fontsize='x-small')
 plt.xscale('log')
 plt.xlabel(r"$\ell$")
-plt.ylabel(r"$\Delta C_\ell^{BB} / 10^{-8}$ (NO SIM MEAN SUBTRACTION)")
+plt.ylabel(r"$\Delta C_\ell^{BB} / 10^{-8}$")
 plt.xlim(10,2000)
 plt.ylim(-25,24)
-plt.savefig('figs/btemplates_data_spec_diff_no_sim_mean_sub.png',bbox_inches='tight')
+plt.savefig('figs/btemplates_data_spec_diff.png',bbox_inches='tight')
 
 #=============================================================================#
 '''

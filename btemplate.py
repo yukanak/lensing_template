@@ -8,6 +8,7 @@
 # spt3g_software/scratch/wlwu/simulations/lowpass_inputsims_xover.py
 
 import sys, os
+from pathlib import Path
 import numpy as np
 sys.path.insert(0, "/home/users/yukanaka/miniconda3/envs/tora_py3/lib/python3.10/site-packages/") #newer scipy version
 import h5py
@@ -159,6 +160,7 @@ class btemplate():
             self.dir_combined_tracer = bconfig['phi']['dir_combined_tracer']
             self.combined_tracer_weights_dir = bconfig['phi']['combined_tracer_weights_dir']
             self.cib_tracer_dir = bconfig['phi']['dir_cib_tracer']
+            self.lmin_cib = bconfig['ep_ells']['lmin_cib']
 
         #load phi yaml
         pconfig     = yaml.safe_load(open(bconfig['phi_yaml'], "rb"))
@@ -290,18 +292,21 @@ class btemplate():
         return self.e_lmmask
 
     def get_btpl_alm(self,idx,recompute=False,savefile=True):
-        fname = self.outdir+self.btpl_fname%idx
+        if self.combined_tracer:
+            fname = self.outdir+f'/ciblmin{self.lmin_cib}/'+self.btpl_fname%idx
+        else:
+            fname = self.outdir+self.btpl_fname%idx
         if recompute or not os.path.isfile(fname):
             if self.combined_tracer:
                 #TODO
-                #klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d.alm"%idx,hdu=1)
-                klm = hp.read_alm(self.dir_combined_tracer+"klm_combined_cib_qe_seed%d_tuned.alm"%idx,hdu=1)
+                klm = hp.read_alm(self.dir_combined_tracer+f"/ciblmin{self.lmin_cib}/klm_combined_cib_qe_seed%d.alm"%idx,hdu=1)
+                #klm = hp.read_alm(self.dir_combined_tracer+f"/ciblmin{self.lmin_cib}/klm_combined_cib_qe_seed%d_tuned.alm"%idx,hdu=1)
                 # Already WF at the combination step so no need for kfilt
-                pwf = hp.almxfl(klm, safe_inv(self.phi2kap(self.ls)))
+                kfilt = np.ones_like(self.clkk); kfilt[0:self.lmin_p] = 0; kfilt[self.lmax_p:] = 0
             else:
                 klm      = self.get_debiased_klm(idx)
                 kfilt   = self.get_kap_filt(idx)
-                pwf  = hp.almxfl(klm, kfilt * safe_inv(self.phi2kap(self.ls)))
+            pwf = hp.almxfl(klm, kfilt * safe_inv(self.phi2kap(self.ls)))
 
             cinv_elm = self.get_cinv_elm(idx)
             elmmask = self.get_e_lmmask()
@@ -310,6 +315,10 @@ class btemplate():
             qe      = qest.qest(self.qeconfig, self.qecls)
             _, blm  = qe.eval('bEP', ewf, pwf)
             if savefile:
+                if self.combined_tracer:
+                    Path(self.outdir+f'/ciblmin{self.lmin_cib}/').mkdir(parents=True,exist_ok=True)
+                else:
+                    Path(self.outdir).mkdir(parents=True,exist_ok=True)
                 hp.write_alm(fname, blm, overwrite=True)
         else:
             blm = hp.read_alm(fname, hdu=1)
@@ -347,7 +356,10 @@ class btemplate():
 
     def get_masked_spec(self, idx, recompute=False, savefile=True):
         # get non-BK purified spec
-        fname = self.outdir+self.btpl_spec_fname%idx
+        if self.combined_tracer:
+            fname = self.outdir+f'/ciblmin{self.lmin_cib}/'+self.btpl_spec_fname%idx
+        else:
+            fname = self.outdir+self.btpl_spec_fname%idx
         if recompute or not os.path.isfile(fname):
             mask = hp.read_map(self.maskfname)
             fsky = np.sum(mask**2)/mask.size
@@ -357,34 +369,46 @@ class btemplate():
             auto     = hp.anafast(btpl_map * mask)/fsky
             cross = auto_in = None
 
-            if idx != 0:# and idx <= 500:
-                if idx <= 250:
-                    bmap_in  = self.get_bmap_in(idx)
-                elif idx <= 500:
-                    # https://github.com/SouthPoleTelescope/spt3g_software/blob/511f58f03a0a3e53f06f0ebd5d2df31bd6a33743/scratch/yomori/utils/utils.py#L248
-                    bmap_full  = self.get_bmap_in(idx-250)
-                    pix = np.where(mask > 0)[0] # patch 1 pixel list
-                    tht,phi = hp.pix2ang(self.nside,pix)
-                    tht2,phi2 = tht,phi+np.pi
-                    ra,dec = self.tp2rd(tht2,phi2) # rotate 180
-                    tht4,phi4 = self.rd2tp(ra,-1*dec) # flip
-                    pix_antipode = hp.ang2pix(self.nside,tht4,phi4)
-                    bmap_in = np.zeros_like(bmap_full)
-                    bmap_in[pix] = bmap_full[pix_antipode] # full-sky map whose values over patch 1 are the values from patch 2
-                    bmap_in *= -1
-                else:
-                    bmap_in  = self.get_bmap_in_agora(idx)
-                cross    = hp.anafast(btpl_map * mask, bmap_in * mask)/fsky
-                auto_in  = hp.anafast(bmap_in * mask)/fsky
+            if idx == 0:
+                # bmap_in is observed (lensed and noisy) 90 GHz B
+                b90_fname = "/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/no_signflip_bundles_000_to_023_pcal_depro_qurot_090ghz.fits"
+                t,q,u = hp.read_map(b90_fname, field=[0,1,2])
+                # avoid "map contains undefined pixels" error for map2alm
+                for m in [t,q,u]:
+                    bad = (~np.isfinite(m)) | (m == hp.UNSEEN)
+                    m[bad] = 0.0
+                # Note full-sky sims are in COSMO and uK but data maps are in IAU convention and units are in mK
+                u = -1*u # IAU -> COSMO
+                t = 1000.0 * t; q = 1000.0 * q; u = 1000.0 * u # mK -> uK
+                # TODO: is this ok even though now it's cut sky
+                _, _, blm = hp.map2alm([t,q,u])
+                bmap_in = hp.alm2map(blm, self.nside)
+            elif idx <= 250:
+                bmap_in  = self.get_bmap_in(idx)
+            elif idx <= 500:
+                # https://github.com/SouthPoleTelescope/spt3g_software/blob/511f58f03a0a3e53f06f0ebd5d2df31bd6a33743/scratch/yomori/utils/utils.py#L248
+                bmap_full  = self.get_bmap_in(idx-250)
+                pix = np.where(mask > 0)[0] # patch 1 pixel list
+                tht,phi = hp.pix2ang(self.nside,pix)
+                tht2,phi2 = tht,phi+np.pi
+                ra,dec = self.tp2rd(tht2,phi2) # rotate 180
+                tht4,phi4 = self.rd2tp(ra,-1*dec) # flip
+                pix_antipode = hp.ang2pix(self.nside,tht4,phi4)
+                bmap_in = np.zeros_like(bmap_full)
+                bmap_in[pix] = bmap_full[pix_antipode] # full-sky map whose values over patch 1 are the values from patch 2
+                bmap_in *= -1
+            else:
+                bmap_in  = self.get_bmap_in_agora(idx)
+
+            cross    = hp.anafast(btpl_map * mask, bmap_in * mask)/fsky
+            auto_in  = hp.anafast(bmap_in * mask)/fsky
             if savefile:
                 np.savez(fname, auto=auto, cross=cross, auto_in=auto_in)
         else:
             tmp   = np.load(fname)
             auto  = tmp['auto']
-            cross = auto_in = None
-            if idx != 0:
-                cross = tmp['cross']
-                auto_in  = tmp['auto_in']
+            cross = tmp['cross']
+            auto_in  = tmp['auto_in']
         return auto, cross, auto_in
 
     def get_pure_masked_spec(self, idx, w=None, dl=True):
@@ -517,7 +541,6 @@ class btemplate():
 
         cmbdir="/lcrc/project/SPT3G/users/ac.yomori/sims/planck2018_cmb_v2/len/"
         fname="lensed_planck2018_base_plikHM_TTTEEE_lowl_lowE_lensing_cambphiG_teb1_seed%i_lmax17000_nside8192_interp1.6_method1_pol_1_alms_lowpass5000.fits"%idx
-
         blm  = hp.read_alm(cmbdir+fname, hdu=[3])
 
         if nside == None:

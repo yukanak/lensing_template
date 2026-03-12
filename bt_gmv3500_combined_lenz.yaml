@@ -25,6 +25,7 @@ ep_ells:
   lmin_e: 40
   lmin_p: 24
   mmin_e: 20
+  lmin_cib: 200
 
 masks:
   phimask: "/oak/stanford/orgs/kipac/users/yukanaka/lensing19-20/masks/mask2048_border_apod_mask_threshold0.1_allghz_dense.fits"

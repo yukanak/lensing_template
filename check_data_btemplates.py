@@ -7,18 +7,32 @@ import healpy as hp
 yaml_file = 'bt_gmv3500.yaml'
 yaml_file_prfhrd = 'bt_gmv3500_prfhrd.yaml'
 yaml_file_pp = 'bt_gmv3500_pp.yaml'
+yaml_file_agoraGfgs = 'bt_gmv3500_agoraGfgs.yaml'
+yaml_file_agoraGfgs_prfhrd = 'bt_gmv3500_agoraGfgs_prfhrd.yaml'
 yaml_file_combined = 'bt_gmv3500_combined_pr3_cib_pr4_kappa.yaml'
+yaml_file_combined_prfhrd = 'bt_gmv3500_combined_pr3_cib_pr4_kappa_prfhrd.yaml'
+yaml_file_combined_pp = 'bt_gmv3500_combined_pr3_cib_pr4_kappa_pp.yaml'
+yaml_file_combined_agora = 'bt_gmv3500_combined_agora545_cib.yaml'
+yaml_file_combined_prfhrd_agora = 'bt_gmv3500_combined_agora545_cib_prfhrd.yaml'
+yaml_file_combined_pp_agora = 'bt_gmv3500_combined_agora545_cib_pp.yaml'
+yaml_file_combined_agoraGfgs = 'bt_gmv3500_combined_agora545_cib_agoraGfgs.yaml'
+yaml_file_combined_prfhrd_agoraGfgs = 'bt_gmv3500_combined_agora545_cib_agoraGfgs_prfhrd.yaml'
 btmp_standard = bt.btemplate(yaml_file)
 btmp_prfhrd = bt.btemplate(yaml_file_prfhrd)
 btmp_pp = bt.btemplate(yaml_file_pp)
+btmp_agoraGfgs = bt.btemplate(yaml_file_agoraGfgs)
+btmp_prfhrd_agoraGfgs = bt.btemplate(yaml_file_agoraGfgs_prfhrd)
 btmp_combined = bt.btemplate(yaml_file_combined,combined_tracer=True)
+btmp_combined_prfhrd = bt.btemplate(yaml_file_combined_prfhrd,combined_tracer=True)
+btmp_combined_pp = bt.btemplate(yaml_file_combined_pp,combined_tracer=True)
+btmp_combined_agora = bt.btemplate(yaml_file_combined_agora,combined_tracer=True)
+btmp_combined_prfhrd_agora = bt.btemplate(yaml_file_combined_prfhrd_agora,combined_tracer=True)
+btmp_combined_pp_agora = bt.btemplate(yaml_file_combined_pp_agora,combined_tracer=True)
+btmp_combined_agoraGfgs = bt.btemplate(yaml_file_combined_agoraGfgs,combined_tracer=True)
+btmp_combined_prfhrd_agoraGfgs = bt.btemplate(yaml_file_combined_prfhrd_agoraGfgs,combined_tracer=True)
 lmax = 4096
 l = np.arange(lmax+1)
 lbins = np.logspace(np.log10(30),np.log10(1000),20)
-#lbins = np.logspace(np.log10(30),np.log10(1000),10)
-#lbins = np.linspace(30, 1000, 21)
-#lbins = np.linspace(30, 1000, 11)
-#lbins = np.linspace(30, 300, 11)
 bin_centers = (lbins[:-1] + lbins[1:]) / 2
 digitized = np.digitize(np.arange(6144), lbins)
 nside = 2048
@@ -37,6 +51,10 @@ a_pp, _, _ = btmp_pp.get_masked_spec(didx)
 auto_pp = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
 a_combined, _, _ = btmp_combined.get_masked_spec(didx)
 auto_combined = np.array([a_combined[digitized == i].mean() for i in range(1, len(lbins))])
+a_combined_prfhrd, _, _ = btmp_combined_prfhrd.get_masked_spec(didx)
+auto_combined_prfhrd = np.array([a_combined_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+a_combined_pp, _, _ = btmp_combined_pp.get_masked_spec(didx)
+auto_combined_pp = np.array([a_combined_pp[digitized == i].mean() for i in range(1, len(lbins))])
 
 # Agora sims
 idxs = np.arange(10)+5001
@@ -46,27 +64,66 @@ autos_pp_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_standard_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)  
+autos_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)    
+diff_auto_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_combined_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)            
+autos_combined_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)     
+autos_combined_pp_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)     
+diff_auto_combined_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_combined_pp_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_combined_pp_prfhrd_agora = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_combined_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)  
+autos_combined_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_combined_prfhrd_agoraGfgs = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
-    a_standard, _, _ = btmp_standard.get_masked_spec(idx)
-    a_standard = [a_standard[digitized == i].mean() for i in range(1, len(lbins))]
-    a_prfhrd, _, _ = btmp_prfhrd.get_masked_spec(idx)
-    a_prfhrd = [a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
-    a_pp, _, _ = btmp_pp.get_masked_spec(idx)
-    a_pp = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
-
-    autos_standard_agora[ii,:] = np.array(a_standard)
-    autos_prfhrd_agora[ii,:] = np.array(a_prfhrd)
-    autos_pp_agora[ii,:] = np.array(a_pp)
-    diff_auto_prfhrd_agora[ii,:] = np.array(a_standard) - np.array(a_prfhrd)
-    diff_auto_pp_agora[ii,:] = np.array(a_standard) - np.array(a_pp)
-    diff_auto_pp_prfhrd_agora[ii,:] = np.array(a_prfhrd) - np.array(a_pp)
+    a_standard, c_standard, _ = btmp_standard.get_masked_spec(idx)
+    a_prfhrd, c_prfhrd, _ = btmp_prfhrd.get_masked_spec(idx)
+    a_pp, c_pp, _ = btmp_pp.get_masked_spec(idx)
+    a_standard_agoraGfgs, c_standard_agoraGfgs, _ = btmp_agoraGfgs.get_masked_spec(idx) 
+    a_prfhrd_agoraGfgs, c_prfhrd_agoraGfgs, _ = btmp_prfhrd_agoraGfgs.get_masked_spec(idx)
+    a_combined_agora, c_combined_agora, _ = btmp_combined_agora.get_masked_spec(idx)
+    a_combined_prfhrd_agora, c_combined_prfhrd_agora, _ = btmp_combined_prfhrd_agora.get_masked_spec(idx)
+    a_combined_pp_agora, c_combined_pp_agora, _ = btmp_combined_pp_agora.get_masked_spec(idx)
+    a_combined_agoraGfgs, c_combined_agoraGfgs, _ = btmp_combined_agoraGfgs.get_masked_spec(idx)
+    a_combined_prfhrd_agoraGfgs, c_combined_prfhrd_agoraGfgs, _ = btmp_combined_prfhrd_agoraGfgs.get_masked_spec(idx)
+    autos_standard_agora[ii,:] = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_prfhrd_agora[ii,:] = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_pp_agora[ii,:] = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_standard_agoraGfgs[ii,:] = np.array([a_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_prfhrd_agoraGfgs[ii,:] = np.array([a_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined_agora[ii,:] = np.array([a_combined_agora[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined_prfhrd_agora[ii,:] = np.array([a_combined_prfhrd_agora[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined_pp_agora[ii,:] = np.array([a_combined_pp_agora[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined_agoraGfgs[ii,:] = np.array([a_combined_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined_prfhrd_agoraGfgs[ii,:] = np.array([a_combined_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_prfhrd_agora[ii,:] = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_pp_agora[ii,:] = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_pp_prfhrd_agora[ii,:] = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_prfhrd_agoraGfgs[ii,:] = np.array([a_standard_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_combined_prfhrd_agora[ii,:] = np.array([a_combined_agora[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_combined_prfhrd_agora[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_combined_pp_agora[ii,:] = np.array([a_combined_agora[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_combined_pp_agora[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_combined_pp_prfhrd_agora[ii,:] = np.array([a_combined_prfhrd_agora[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_combined_pp_agora[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_combined_prfhrd_agoraGfgs[ii,:] = np.array([a_combined_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_combined_prfhrd_agoraGfgs[digitized == i].mean() for i in range(1, len(lbins))])
 auto_standard_agora = np.mean(autos_standard_agora, axis=0)
 auto_prfhrd_agora = np.mean(autos_prfhrd_agora, axis=0)
 auto_pp_agora = np.mean(autos_pp_agora, axis=0)
+auto_standard_agoraGfgs = np.mean(autos_standard_agoraGfgs, axis=0)
+auto_prfhrd_agoraGfgs = np.mean(autos_prfhrd_agoraGfgs, axis=0)
+auto_combined_standard_agora = np.mean(autos_combined_agora, axis=0)
+auto_combined_prfhrd_agora = np.mean(autos_combined_prfhrd_agora, axis=0)
+auto_combined_pp_agora = np.mean(autos_combined_pp_agora, axis=0)
+auto_combined_standard_agoraGfgs = np.mean(autos_combined_agoraGfgs, axis=0)
+auto_combined_prfhrd_agoraGfgs = np.mean(autos_combined_prfhrd_agoraGfgs, axis=0)
 diff_auto_mean_prfhrd_agora = np.mean(diff_auto_prfhrd_agora, axis=0) # sim mean to subtract
 diff_auto_mean_pp_agora = np.mean(diff_auto_pp_agora, axis=0) # sim mean to subtract
 diff_auto_mean_pp_prfhrd_agora = np.mean(diff_auto_pp_prfhrd_agora, axis=0) # sim mean to subtract
+diff_auto_mean_prfhrd_agoraGfgs = np.mean(diff_auto_prfhrd_agoraGfgs, axis=0) # sim mean to subtract
+diff_auto_mean_combined_prfhrd_agora = np.mean(diff_auto_combined_prfhrd_agora, axis=0) # sim mean to subtract
+diff_auto_mean_combined_pp_agora = np.mean(diff_auto_combined_pp_agora, axis=0) # sim mean to subtract
+diff_auto_mean_combined_pp_prfhrd_agora = np.mean(diff_auto_combined_pp_prfhrd_agora, axis=0) # sim mean to subtract
+diff_auto_mean_combined_prfhrd_agoraGfgs = np.mean(diff_auto_combined_prfhrd_agoraGfgs, axis=0) # sim mean to subtract
 
 # Get error bars from sims...
 idxs = np.arange(499)+1
@@ -74,57 +131,58 @@ autos_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_combined = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_combined_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+autos_combined_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 cross_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
-cross_combined = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_in_standard = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_in_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 autos_in_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
-autos_in_combined = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 diff_auto_pp_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_combined_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_combined_pp = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
+diff_auto_combined_pp_prfhrd = np.zeros((len(idxs),len(lbins)-1),dtype=np.complex_)
 for ii, idx in enumerate(idxs):
     print(idx)
     a_standard, c_standard, a_in_standard = btmp_standard.get_masked_spec(idx)
-    a_standard = [a_standard[digitized == i].mean() for i in range(1, len(lbins))]
-    c_standard = [c_standard[digitized == i].mean() for i in range(1, len(lbins))]
-    a_in_standard = [a_in_standard[digitized == i].mean() for i in range(1, len(lbins))]
     a_prfhrd, c_prfhrd, a_in_prfhrd = btmp_prfhrd.get_masked_spec(idx)
-    a_prfhrd = [a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
-    c_prfhrd = [c_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
-    a_in_prfhrd = [a_in_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]
     a_pp, c_pp, a_in_pp = btmp_pp.get_masked_spec(idx)
-    a_pp = [a_pp[digitized == i].mean() for i in range(1, len(lbins))]
-    c_pp = [c_pp[digitized == i].mean() for i in range(1, len(lbins))]
-    a_in_pp = [a_in_pp[digitized == i].mean() for i in range(1, len(lbins))]
-    #a_combined, c_combined, a_in_combined = btmp_combined.get_masked_spec(idx)
-    #a_combined = [a_combined[digitized == i].mean() for i in range(1, len(lbins))]
-    #c_combined = [c_combined[digitized == i].mean() for i in range(1, len(lbins))]
-    #a_in_combined = [a_in_combined[digitized == i].mean() for i in range(1, len(lbins))]
-
-    autos_standard[ii,:] = np.array(a_standard)
-    autos_prfhrd[ii,:] = np.array(a_prfhrd)
-    autos_pp[ii,:] = np.array(a_pp)
-    #autos_combined[ii,:] = np.array(a_combined)
-    cross_standard[ii,:] = np.array(c_standard)
-    cross_prfhrd[ii,:] = np.array(c_prfhrd)
-    cross_pp[ii,:] = np.array(c_pp)
-    #cross_combined[ii,:] = np.array(c_combined)
-    autos_in_standard[ii,:] = np.array(a_in_standard)
-    autos_in_prfhrd[ii,:] = np.array(a_in_prfhrd)
-    autos_in_pp[ii,:] = np.array(a_in_pp)
-    #autos_in_combined[ii,:] = np.array(a_in_combined)
-    diff_auto_prfhrd[ii,:] = np.array(a_standard) - np.array(a_prfhrd)
-    diff_auto_pp[ii,:] = np.array(a_standard) - np.array(a_pp)
-    diff_auto_pp_prfhrd[ii,:] = np.array(a_prfhrd) - np.array(a_pp)
+    a_combined, c_combined, _ = btmp_combined.get_masked_spec(idx)
+    a_combined_prfhrd, c_combined_prfhrd, _ = btmp_combined_prfhrd.get_masked_spec(idx)
+    a_combined_pp, c_combined_pp, _ = btmp_combined_pp.get_masked_spec(idx)
+    autos_standard[ii,:] = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_prfhrd[ii,:] = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_pp[ii,:] = np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined[ii,:] = np.array([a_combined[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined_prfhrd[ii,:] = np.array([a_combined_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_combined_pp[ii,:] = np.array([a_combined_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    cross_standard[ii,:] = np.array([c_standard[digitized == i].mean() for i in range(1, len(lbins))])
+    cross_prfhrd[ii,:] = np.array([c_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    cross_pp[ii,:] = np.array([c_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_in_standard[ii,:] = np.array([a_in_standard[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_in_prfhrd[ii,:] = np.array([a_in_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    autos_in_pp[ii,:] = np.array([a_in_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_prfhrd[ii,:] = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_pp[ii,:] = np.array([a_standard[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_pp_prfhrd[ii,:] = np.array([a_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_combined_prfhrd[ii,:] = np.array([a_combined[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_combined_prfhrd[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_combined_pp[ii,:] = np.array([a_combined[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_combined_pp[digitized == i].mean() for i in range(1, len(lbins))])
+    diff_auto_combined_pp_prfhrd[ii,:] = np.array([a_combined_prfhrd[digitized == i].mean() for i in range(1, len(lbins))]) - np.array([a_combined_pp[digitized == i].mean() for i in range(1, len(lbins))])
 diff_auto_std_prfhrd = np.std(diff_auto_prfhrd, axis=0)
 diff_auto_std_pp = np.std(diff_auto_pp, axis=0)
 diff_auto_std_pp_prfhrd = np.std(diff_auto_pp_prfhrd, axis=0)
+diff_auto_std_combined_prfhrd = np.std(diff_auto_combined_prfhrd, axis=0)
+diff_auto_std_combined_pp = np.std(diff_auto_combined_pp, axis=0)
+diff_auto_std_combined_pp_prfhrd = np.std(diff_auto_combined_pp_prfhrd, axis=0)
 diff_auto_mean_prfhrd = np.mean(diff_auto_prfhrd, axis=0) # sim mean to subtract
 diff_auto_mean_pp = np.mean(diff_auto_pp, axis=0) # sim mean to subtract
 diff_auto_mean_pp_prfhrd = np.mean(diff_auto_pp_prfhrd, axis=0) # sim mean to subtract
+diff_auto_mean_combined_prfhrd = np.mean(diff_auto_combined_prfhrd, axis=0) # sim mean to subtract
+diff_auto_mean_combined_pp = np.mean(diff_auto_combined_pp, axis=0) # sim mean to subtract
+diff_auto_mean_combined_pp_prfhrd = np.mean(diff_auto_combined_pp_prfhrd, axis=0) # sim mean to subtract
 autos_mean_standard = np.mean(autos_standard, axis=0)
 cross_mean_standard = np.mean(cross_standard, axis=0)
 autos_input_mean_standard = np.mean(autos_in_standard, axis=0)
@@ -134,6 +192,9 @@ autos_input_mean_prfhrd = np.mean(autos_in_prfhrd, axis=0)
 autos_mean_pp = np.mean(autos_pp, axis=0)
 cross_mean_pp = np.mean(cross_pp, axis=0)
 autos_input_mean_pp = np.mean(autos_in_pp, axis=0)
+autos_mean_combined_standard = np.mean(autos_combined, axis=0)
+autos_mean_combined_prfhrd = np.mean(autos_combined_prfhrd, axis=0)
+autos_mean_combined_pp = np.mean(autos_combined_pp, axis=0)
 r_std = cross_mean_standard / np.sqrt(autos_mean_standard * autos_input_mean_standard)
 r_prfhrd = cross_mean_prfhrd / np.sqrt(autos_mean_prfhrd * autos_input_mean_prfhrd)
 r_pp = cross_mean_pp / np.sqrt(autos_mean_pp * autos_input_mean_pp)
@@ -142,12 +203,22 @@ r_pp = cross_mean_pp / np.sqrt(autos_mean_pp * autos_input_mean_pp)
 plt.figure(0)
 plt.clf()
 plt.plot(np.zeros(4096),'k--',lw=0.8,dashes=(6,3))
+'''
 plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_prfhrd)) - diff_auto_mean_prfhrd) * scal, yerr=diff_auto_std_prfhrd * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd")
 plt.errorbar(bin_centers, ((np.array(auto_standard) - np.array(auto_pp)) - diff_auto_mean_pp) * scal, yerr=diff_auto_std_pp * scal, color='darkblue', linestyle='-', label="btemplate auto diff standard - pol-only")
 plt.errorbar(bin_centers, ((np.array(auto_prfhrd) - np.array(auto_pp)) - diff_auto_mean_pp_prfhrd) * scal, yerr=diff_auto_std_pp_prfhrd * scal, color='forestgreen', linestyle='-', label="btemplate auto diff prfhrd - pol-only")
 plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_prfhrd_agora)) - diff_auto_mean_prfhrd) * scal, yerr=diff_auto_std_prfhrd * scal, color='pink', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
 plt.errorbar(bin_centers, ((np.array(auto_standard_agora) - np.array(auto_pp_agora)) - diff_auto_mean_pp) * scal, yerr=diff_auto_std_pp * scal, color='cornflowerblue', linestyle='--', label="btemplate auto diff standard - pol-only, avg 10 Agora sims", alpha=0.5)
 plt.errorbar(bin_centers, ((np.array(auto_prfhrd_agora) - np.array(auto_pp_agora)) - diff_auto_mean_pp_prfhrd) * scal, yerr=diff_auto_std_pp_prfhrd * scal, color='lightgreen', linestyle='--', label="btemplate auto diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_standard_agoraGfgs) - np.array(auto_prfhrd_agoraGfgs)) - diff_auto_mean_prfhrd) * scal, yerr=diff_auto_std_prfhrd * scal, color='orange', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora G fg sims", alpha=0.5)
+'''
+plt.errorbar(bin_centers, ((np.array(auto_combined) - np.array(auto_combined_prfhrd)) - diff_auto_mean_combined_prfhrd) * scal, yerr=diff_auto_std_combined_prfhrd * scal, color='firebrick', linestyle='-', label="btemplate auto diff standard - prfhrd")
+plt.errorbar(bin_centers, ((np.array(auto_combined) - np.array(auto_combined_pp)) - diff_auto_mean_combined_pp) * scal, yerr=diff_auto_std_combined_pp * scal, color='darkblue', linestyle='-', label="btemplate auto diff standard - pol-only")
+plt.errorbar(bin_centers, ((np.array(auto_combined_prfhrd) - np.array(auto_combined_pp)) - diff_auto_mean_combined_pp_prfhrd) * scal, yerr=diff_auto_std_combined_pp_prfhrd * scal, color='forestgreen', linestyle='-', label="btemplate auto diff prfhrd - pol-only")
+plt.errorbar(bin_centers, ((np.array(auto_combined_standard_agora) - np.array(auto_combined_prfhrd_agora)) - diff_auto_mean_combined_prfhrd) * scal, yerr=diff_auto_std_combined_prfhrd * scal, color='pink', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_combined_standard_agora) - np.array(auto_combined_pp_agora)) - diff_auto_mean_combined_pp) * scal, yerr=diff_auto_std_combined_pp * scal, color='cornflowerblue', linestyle='--', label="btemplate auto diff standard - pol-only, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_combined_prfhrd_agora) - np.array(auto_combined_pp_agora)) - diff_auto_mean_combined_pp_prfhrd) * scal, yerr=diff_auto_std_combined_pp_prfhrd * scal, color='lightgreen', linestyle='--', label="btemplate auto diff prfhrd - pol-only, avg 10 Agora sims", alpha=0.5)
+plt.errorbar(bin_centers, ((np.array(auto_combined_standard_agoraGfgs) - np.array(auto_combined_prfhrd_agoraGfgs)) - diff_auto_mean_combined_prfhrd) * scal, yerr=diff_auto_std_combined_prfhrd * scal, color='orange', linestyle='--', label="btemplate auto diff standard - prfhrd, avg 10 Agora G fg sims", alpha=0.5)
 plt.legend(loc='upper right', fontsize='x-small')
 plt.xscale('log')
 plt.xlabel(r"$\ell$")
@@ -172,7 +243,7 @@ plt.savefig('figs/btemplates_data_spec_diff.png',bbox_inches='tight')
 #plt.savefig('figs/btemplates_correlation_coeff_vs_data_spec_diff.png',bbox_inches='tight')
 
 # Get the chi-squared
-diff_vec = diff_auto_mean_prfhrd_agora - diff_auto_mean_prfhrd
+diff_vec = diff_auto_mean_prfhrd_agoraGfgs - diff_auto_mean_prfhrd
 diff_cov = np.cov(diff_auto_prfhrd, rowvar=False) / 10
 #diff_vec = (np.array(auto_standard) - np.array(auto_prfhrd)) - diff_auto_mean_prfhrd
 #diff_cov = np.cov(diff_auto_prfhrd, rowvar=False)
@@ -209,6 +280,7 @@ plt.savefig('figs/btemplates_data_spec_diff_corr_matrix.png',bbox_inches='tight'
 #diff_sim1 = bt_standard_sim1_map - bt_prfhrd_sim1_map
 #diff_sim1_pp = bt_standard_sim1_map - bt_pp_sim1_map
 
+# PLOT MAPS
 bt_standard = hp.read_alm('/oak/stanford/orgs/kipac/users/yukanaka/lensing_template/btemplates/gmvjtp_sep_lmaxT3500/btmpl_alm_%04d.fits'%didx)
 bt_standard = hp.almxfl(bt_standard, bl)
 bt_standard_map = hp.alm2map(bt_standard,nside=nside)
